@@ -1,0 +1,63 @@
+<html>
+  <head>
+    <title>Examples of canvas globalCompositeOperation with shadow</title>
+    <script type="application/x-javascript">
+      function drawExample(ctx, compositeOperation) {
+          // draw blue rectangle
+          ctx.fillStyle = "#09f";
+          ctx.fillRect(15,15,70,70);
+          // set composite operation
+          ctx.globalCompositeOperation = compositeOperation;
+          // draw red circle with green shadow
+          ctx.shadowColor = "#0f0";
+          ctx.shadowOffsetX = 10;
+          ctx.fillStyle = "#f30";
+          ctx.fillRect(40,40,70,70);
+      }
+
+      function draw() {
+          var ctx0 = document.getElementById('tut0').getContext('2d');
+          // draw blue rectangle
+          ctx0.fillStyle = "#09f";
+          ctx0.fillRect(15,15,70,70);
+
+          var ctx1 = document.getElementById('tut1').getContext('2d');
+          // draw red circle
+          ctx1.fillStyle = "#f30";
+          ctx1.fillRect(40,40,70,70);
+
+          var ctx2 = document.getElementById('tut2').getContext('2d');
+          // draw green circle imitating shadow
+          ctx2.fillStyle = "#0f0";
+          ctx2.fillRect(50,40,70,70);
+
+          drawExample(document.getElementById('tut3').getContext('2d'), 'source-over');
+          drawExample(document.getElementById('tut4').getContext('2d'), 'destination-over');
+          drawExample(document.getElementById('tut5').getContext('2d'), 'source-atop');
+          drawExample(document.getElementById('tut6').getContext('2d'), 'destination-atop');
+      }
+    </script>
+    <style type="text/css">
+      body { margin: 20px; font-family: arial,verdana,helvetica; background: #fff;}
+      h1 { font-size: 140%; font-weight:normal; color: #036; border-bottom: 1px solid #ccc; }
+      canvas { border: 2px solid #000; margin-bottom: 5px; }
+      td { padding: 7px; }
+      pre { float:left; display:block; background: rgb(238,238,238); border: 1px dashed #666; padding: 15px 20px; margin: 0 0 10px 0; }
+    </style>
+  </head>
+  <body onload="draw();">
+    <div>
+      <table>
+        <tr>
+          <td><canvas id="tut0" width="125" height="125"></canvas><br/><label>destination</label></td>
+          <td><canvas id="tut1" width="125" height="125"></canvas><br/><label>source</label></td>
+          <td><canvas id="tut2" width="125" height="125"></canvas><br/><label>shadow</label></td>
+          <td><canvas id="tut3" width="125" height="125"></canvas><br/><label>source-over</label></td>
+          <td><canvas id="tut4" width="125" height="125"></canvas><br/><label>destination-over</label></td>
+          <td><canvas id="tut5" width="125" height="125"></canvas><br/><label>source-atop</label></td>
+          <td><canvas id="tut6" width="125" height="125"></canvas><br/><label>destination-atop</label></td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

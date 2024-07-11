@@ -1,0 +1,59 @@
+<html>
+  <head>
+    <title>Example of canvas drawing with shadow</title>
+    <script type="application/x-javascript">
+      function drawExample(ctx, compositeOperation) {
+          // draw blue rectangle
+          ctx.fillStyle = "#09f";
+          ctx.fillRect(15,15,70,70);
+          // set composite operation
+          ctx.globalCompositeOperation = compositeOperation;
+          // draw red circle
+          ctx.fillStyle = "#f30";
+          ctx.beginPath();
+          ctx.arc(75,75,35,0,Math.PI*2,true);
+          ctx.fill();
+      }
+
+      function draw() {
+          var ctx0 = document.getElementById('tut0').getContext('2d');
+          // draw red circle
+          ctx0.fillStyle = "#f30";
+          ctx0.beginPath();
+          ctx0.arc(75,75,35,0,Math.PI*2,true);
+          ctx0.fill();
+
+          var ctx1 = document.getElementById('tut1').getContext('2d');
+          // draw red circle with green shadow
+          ctx1.shadowColor = "#0f0";
+          ctx1.shadowOffsetX = 10;
+          ctx1.fillStyle = "#f30";
+          ctx1.beginPath();
+          ctx1.arc(75,75,35,0,Math.PI*2,true);
+          ctx1.fill();
+
+          drawExample(document.getElementById('tut2').getContext('2d'), 'source-over');
+          drawExample(document.getElementById('tut3').getContext('2d'), 'destination-over');
+          drawExample(document.getElementById('tut4').getContext('2d'), 'source-atop');
+          drawExample(document.getElementById('tut5').getContext('2d'), 'destination-atop');
+      }
+    </script>
+    <style type="text/css">
+      body { margin: 20px; font-family: arial,verdana,helvetica; background: #fff;}
+      h1 { font-size: 140%; font-weight:normal; color: #036; border-bottom: 1px solid #ccc; }
+      canvas { border: 2px solid #000; margin-bottom: 5px; }
+      td { padding: 7px; }
+      pre { float:left; display:block; background: rgb(238,238,238); border: 1px dashed #666; padding: 15px 20px; margin: 0 0 10px 0; }
+    </style>
+  </head>
+  <body onload="draw();">
+    <div>
+      <table>
+        <tr>
+          <td><canvas id="tut0" width="125" height="125"></canvas><br/><label>circle</label></td>
+          <td><canvas id="tut1" width="125" height="125"></canvas><br/><label>circle with shadow</label></td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>
