@@ -1,0 +1,33 @@
+<html>
+  <body>
+    <script>
+      var canvas = document.createElement("canvas");
+      canvas.width = 1400;
+      canvas.height = 600;
+      canvas.style.border = '1px solid #000';
+      document.body.appendChild(canvas);
+
+      var gl = canvas.getContext('webgl', {preserveDrawingBuffer: true});
+      gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+      gl.clearColor(0.0, 1.0, 0.0, 1.0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.enable(gl.SCISSOR_TEST);
+      gl.scissor(5, 5, 50, 50);
+      gl.clearColor(0.0, 0.0, 1.0, 1.0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+
+      var drawFunction = (i) => {
+          gl.clearColor(1.0, 1.0, 1.0, 1.0);
+          gl.clear(gl.COLOR_BUFFER_BIT);
+          var extraSize = (i % 100) * 2;
+          gl.scissor(5 + extraSize, 5 + extraSize, 50 + extraSize, 50 + extraSize);
+          gl.clearColor(0.0, 0.0, 1.0, 1.0);
+          gl.clear(gl.COLOR_BUFFER_BIT);
+
+          requestAnimationFrame(() => { drawFunction(i + 1); });
+      }
+
+      requestAnimationFrame(() => { drawFunction(0); });
+    </script>
+  </body>
+</html>
