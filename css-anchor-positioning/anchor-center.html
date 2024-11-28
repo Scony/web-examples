@@ -1,0 +1,31 @@
+<html>
+  <head>
+    <style>
+      .anchor {
+          anchor-name: --dropdownAnchor;
+          background: orange;
+          width: 100px;
+      }
+      .target {
+          position-anchor: --dropdownAnchor;
+          position: fixed;
+          top: anchor(bottom);
+          justify-self: anchor-center;
+          width: 80px;
+          border: 1px #000 solid;
+          background: lime;
+      }
+    </style>
+  </head>
+  <body>
+    <table>
+      <tr>
+        <td>offsetttttttt</td>
+        <td>
+          <div class="anchor">anchor 1</div>
+        </td>
+      </tr>
+    </table>
+    <div class="target">target 1</div>
+  </body>
+</html>
