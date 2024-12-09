@@ -1,0 +1,67 @@
+<html>
+  <head>
+    <style>
+      .grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, 130px);
+          grid-template-rows: repeat(auto-fill);
+          height: 100%;
+      }
+      .container {
+          border: 1px solid #000;
+          width: 120px;
+          height: 1px;
+      }
+      @keyframes progress {
+          from {
+              width: 0%;
+          }
+          to {
+              width: 100%;
+          }
+      }
+      .progressBar {
+          background-color: #f00;
+          width: 0%;
+          height: 100%;
+          animation-name: progress;
+          animation-duration: 4s;
+          animation-iteration-count: infinite;
+          animation-timing-function: steps(4, end);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="grid">
+    </div>
+    <script>
+      function createDivElement(className, htmlContent) {
+          let newElement = document.createElement('div');
+          newElement.className = className;
+          newElement.innerHTML = htmlContent;
+          return newElement;
+      }
+
+      // Spawn progress bars.
+      const progressBarsNum = (new URL(window.location.href)).searchParams.get("bars") || 120;
+      var gridContainer = document.getElementsByClassName("grid")[0];
+      for (var i = 0; i < progressBarsNum; i++) {
+          gridContainer.appendChild(createDivElement("container", '<div class="progressBar"></div>'));
+      }
+
+      // Start calculating poor's man FPS.
+      var lastFPSCalculation = Date.now();
+      var framesSinceLastFPSCalculation = 0;
+      requestAnimationFrame(function loop() {
+          framesSinceLastFPSCalculation++;
+          var now = Date.now();
+          if (now - lastFPSCalculation > 1000) {
+              console.log("FPS: " + (framesSinceLastFPSCalculation / ((now - lastFPSCalculation) / 1000)));
+              lastFPSCalculation = now;
+              framesSinceLastFPSCalculation = 0;
+          }
+          requestAnimationFrame(loop);
+      });
+    </script>
+  </body>
+</html>

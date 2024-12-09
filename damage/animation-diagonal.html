@@ -1,0 +1,26 @@
+<html>
+  <body>
+    <script>
+      function createDivElement(style) {
+          let newElement = document.createElement('div');
+          newElement.style = style;
+          return newElement;
+      }
+
+      const interval = (new URL(window.location.href)).searchParams.get("interval") || 1000;
+      const elementSize = (new URL(window.location.href)).searchParams.get("size") || 5;
+      var elements = [];
+
+      setInterval(() => {
+          for (var element of elements) {
+              console.log(element.style.background);
+              element.style.background = element.style.background == "rgb(0, 0, 0)" ? '#0f0' : '#000';
+          }
+          const offset = elements.length * elementSize;
+          var element = createDivElement('width:'+elementSize+'px;height:'+elementSize+'px;background:#000;position:absolute;top:'+offset+'px;left:'+offset+'px;"');
+          document.body.appendChild(element);
+          elements.push(element);
+      }, interval);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,36 @@
+<html>
+  <head>
+    <style>
+      body {
+          margin: 0px;
+      }
+      #wide {
+          border: solid red 1px;
+          width: 2558px;
+          height: 17px;
+      }
+      #tall {
+          border: solid blue 1px;
+          width: 43px;
+          height: 3000px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="wide"></div>
+    <div id="tall"></div>
+    <script>
+      var rafFunction = (frameNumber) => {
+          console.log("frame #" + frameNumber);
+          if (frameNumber > 5) {
+              document.body.scroll(0, 1337);
+              return;
+          }
+          requestAnimationFrame(() => { rafFunction(frameNumber + 1); });
+      };
+      requestAnimationFrame(() => {
+          rafFunction(0);
+      });
+    </script>
+  </body>
+</html>

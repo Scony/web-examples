@@ -1,0 +1,27 @@
+<html>
+  <head>
+    <style>
+      .rect {
+          width: 100px;
+          height: 100px;
+          margin: 100px auto;
+          background-color: #f00;
+          animation-name: progress;
+          animation-duration: 4s;
+          animation-iteration-count: infinite;
+          animation-timing-function: steps(4, end);
+      }
+      @keyframes progress {
+          from {
+              filter: blur(0px);
+          }
+          to {
+              filter: blur(40px);
+          }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="rect"/>
+  </body>
+</html>

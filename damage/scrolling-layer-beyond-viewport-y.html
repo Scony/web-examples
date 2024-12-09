@@ -1,0 +1,30 @@
+<html>
+  <head>
+    <style>
+      body {
+          margin: 0px;
+      }
+      #tall {
+          position: relative;
+          border: solid red 1px;
+          top: 2px;
+          width: 333px;
+          height: 1355px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="tall"></div>
+    <script>
+      var rafFunction = (frameNumber) => {
+          console.log("frame #" + frameNumber);
+          if (frameNumber > 5)
+              return;
+          requestAnimationFrame(() => { rafFunction(frameNumber + 1); });
+      };
+      requestAnimationFrame(() => {
+          rafFunction(0);
+      });
+    </script>
+  </body>
+</html>

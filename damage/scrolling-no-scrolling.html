@@ -1,0 +1,28 @@
+<html>
+  <head>
+    <style>
+      body {
+          margin: 0px;
+      }
+      #widentall {
+          border: solid red 1px;
+          width: 333px;
+          height: 333px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="widentall"></div>
+    <script>
+      var rafFunction = (frameNumber) => {
+          console.log("frame #" + frameNumber);
+          if (frameNumber > 5)
+              return;
+          requestAnimationFrame(() => { rafFunction(frameNumber + 1); });
+      };
+      requestAnimationFrame(() => {
+          rafFunction(0);
+      });
+    </script>
+  </body>
+</html>
