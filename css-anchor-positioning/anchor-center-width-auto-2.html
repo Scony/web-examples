@@ -1,0 +1,61 @@
+<html>
+  <head>
+    <style>
+      .container {
+          width: 100px;
+          height: 100px;
+          border: solid 3px;
+          position: relative;
+          margin: 50px;
+      }
+
+      .anchor {
+          anchor-name: --anchor;
+          position: relative;
+          width: 50px;
+          height: 50px;
+          left: 40px;
+          top: 5px;
+          background: lime;
+      }
+
+      .target {
+          position-anchor: --anchor;
+          position: fixed;
+          background: cyan;
+          justify-self: anchor-center;
+          top: anchor(bottom);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="anchor"></div>
+      <div class="target">
+        <div style="width:30px;height:20px;"></div>
+      </div>
+    </div>
+    <p id="result"></p>
+    <script>
+      var anchorTarget = document.getElementsByClassName("target")[0];
+      var result = document.getElementById("result");
+
+      const hideResult = (new URL(window.location.href)).searchParams.get("hideResult") || false;
+
+      if (!hideResult) {
+          const validate = () => {
+              console.log("anchorTarget.offsetWidth:" + anchorTarget.offsetWidth);
+              console.log("anchorTarget.offsetLeft:" + anchorTarget.offsetLeft);
+              if (anchorTarget.offsetWidth == 30 && anchorTarget.offsetLeft == 111) {
+                  result.style.color = 'green';
+                  result.innerText = 'PASS';
+              } else {
+                  result.style.color = 'red';
+                  result.innerText = 'FAIL';
+              }
+          }
+          validate();
+      }
+    </script>
+  </body>
+</html>
