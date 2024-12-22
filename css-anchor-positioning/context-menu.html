@@ -1,0 +1,58 @@
+<html>
+  <head>
+    <style>
+      body {
+          background: lightgray;
+      }
+      #anchor {
+          anchor-name: --contextMenu;
+          width: 100px;
+      }
+      td {
+          padding : 10px;
+          border: 1px solid black; 
+      }
+      #menu {
+          display: none;
+          position: fixed;
+          left: anchor(--contextMenu right);
+          top: anchor(--contextMenu bottom);
+          width: 150px;
+          border: 2px solid blue;
+          background: white;
+      }
+    </style>
+  </head>
+  <body>
+    some dumy text for offset
+    <table style="display: inline-block">
+      <tr>
+        <td>tr1/td1</td>
+        <td>tr1/td2</td>
+        <td colspan="2">tr1/td3</td>
+      </tr>
+      <tr>
+        <td colspan="2">tr2/td1</td>
+        <td>tr2/td2</td>
+        <td>
+          <button id="anchor">button (anchor)</button>
+        </td>
+      </tr>
+    </table>
+    <p>
+      very long text in the background
+      | very long text in the background
+      | very long text in the background
+    </p>
+    <div id="menu"><ul><li>item 1</li><li>item 2</li><li>item 3</li></ul></div>
+    <script>
+      document.getElementById("anchor").onclick = () => {
+          let menu = document.getElementById("menu");
+          if (!menu.style.display || menu.style.display === "none")
+              menu.style.display = "flow";
+          else
+              menu.style.display = "none";
+      };
+    </script>
+  </body>
+</html>
