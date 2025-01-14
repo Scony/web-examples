@@ -1,0 +1,37 @@
+<html>
+  <head>
+    <style>
+      .container {
+          margin: 100px auto;
+          background-color: yellow;
+      }
+      .rect {
+          width: 100px;
+          height: 100px;
+          margin: auto;
+          background-color: green;
+      }
+      .animation {
+          animation-name: progress;
+          animation-duration: 4s;
+          animation-iteration-count: infinite;
+          animation-timing-function: steps(4, end);
+      }
+      @keyframes progress {
+          from {
+              transform: skew(0);
+          }
+          to {
+              transform: skew(45deg);
+          }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="rect"></div>
+      <div class="rect animation" style="background-color: blue;"></div>
+      <div class="rect"></div>
+    </div>
+  </body>
+</html>

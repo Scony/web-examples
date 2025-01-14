@@ -1,0 +1,41 @@
+<html>
+  <head>
+    <style>
+      html {
+          width: 100%;
+          height: 100%;
+          transition: transform 2s ease;
+          transform-origin: center center;
+      }
+
+      .scroll-container {
+          overflow: hidden;
+          white-space: nowrap;
+          margin-top: 20px;
+          position: relative;
+      }
+
+      #scroll-text {
+          font-size: 120px;
+          text-align: right;
+          color: red;
+          transform: translateX(100%);
+          animation: left-to-right 10s linear infinite;
+      }
+
+      @keyframes left-to-right {
+          from {
+              transform: translateX(-100%);
+          }
+          to {
+              transform: translateX(100%);
+          }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="scroll-container" id="scroll-container-1">
+      <div id="scroll-text">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua</div>
+    </div>
+  </body>
+</html>
