@@ -1,0 +1,38 @@
+<html>
+  <body>
+    <canvas id="canvas" width="1400" height="600"></canvas>
+    <script>
+      var canvas = document.getElementById("canvas");
+      var ctx = canvas.getContext('2d');
+
+      ctx.fillStyle = "yellow";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      requestAnimationFrame(() => {
+          ctx.fillStyle = "green";
+          ctx.fillRect(canvas.width/4, canvas.height/2, 50, 50);
+          console.log(`RAF #0, fillRect(${canvas.width/4}, ${canvas.height/2}, 50, 50)`);
+
+          requestAnimationFrame(() => {
+              ctx.fillStyle = "yellow";
+              ctx.fillRect(canvas.width/4, canvas.height/2, 50, 50);
+              console.log(`RAF #1, fillRect(${canvas.width/4}, ${canvas.height/2}, 50, 50)`);
+
+              ctx.fillStyle = "green";
+              ctx.fillRect(canvas.width/4 + 60, canvas.height/2, 50, 50);
+              console.log(`RAF #1, fillRect(${canvas.width/4 + 60}, ${canvas.height/2}, 50, 50)`);
+
+              requestAnimationFrame(() => {
+                  ctx.fillStyle = "yellow";
+                  ctx.fillRect(canvas.width/4 + 60, canvas.height/2, 50, 50);
+                  console.log(`RAF #2, fillRect(${canvas.width/4 + 60}, ${canvas.height/2}, 50, 50)`);
+
+                  ctx.fillStyle = "green";
+                  ctx.fillRect(canvas.width/4 + 120, canvas.height/2, 50, 50);
+                  console.log(`RAF #2, fillRect(${canvas.width/4 + 120}, ${canvas.height/2}, 50, 50)`);
+              });
+          });
+      });
+    </script>
+  </body>
+</html>
