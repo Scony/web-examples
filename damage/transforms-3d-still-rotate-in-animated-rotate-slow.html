@@ -1,0 +1,47 @@
+<html>
+  <head>
+    <style>
+      .container {
+          margin: 100px auto;
+          background-color: yellow;
+      }
+      .rect {
+          width: 100px;
+          height: 100px;
+          margin: auto;
+          background-color: green;
+      }
+      .contentRect {
+          position: absolute;
+          width: 50px;
+          height: 50px;
+          top: 25%;
+          left: 25%;
+          background-color: white;
+      }
+      .animation {
+          animation-name: progress;
+          animation-duration: 4s;
+          animation-iteration-count: infinite;
+          animation-timing-function: steps(4, end);
+      }
+      @keyframes progress {
+          from {
+              transform: rotate3d(1, 1, 1, 0deg);
+          }
+          to {
+              transform: rotate3d(1, 1, 1, 80deg);
+          }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="rect"></div>
+      <div class="rect animation" style="background-color: blue;">
+        <div class="contentRect" style="transform: rotate3d(1, 1, 1, 45deg);"></div>
+      </div>
+      <div class="rect"></div>
+    </div>
+  </body>
+</html>
