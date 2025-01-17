@@ -1,0 +1,44 @@
+<html>
+  <head>
+    <style>
+      body {
+          height: 100%;
+          margin: 0px;
+          overflow: hidden;
+      }
+      #container {
+          margin: 100px auto;
+          width: 333px;
+          height: 333px;
+          overflow: scroll;
+          border: solid blue 1px;
+      }
+      #big {
+          width: 777px;
+          height: 777px;
+          background-image: linear-gradient(to bottom right, black, white);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="container">
+      <div id="big" style="border: solid blue 1px; height: 700px; width: 700px;">
+      </div>
+    </div>
+    <script>
+      var container = document.getElementById("container");
+      setTimeout(() => {
+          console.log("jump 1");
+          container.scroll(0, 100);
+      }, 1000);
+      setTimeout(() => {
+          console.log("jump 2");
+          container.scroll(0, 200);
+      }, 2000);
+      setTimeout(() => {
+          console.log("jump 3");
+          container.scroll(0, 300);
+      }, 3000);
+    </script>
+  </body>
+</html>
