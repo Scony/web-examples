@@ -1,0 +1,58 @@
+<html>
+  <head>
+    <style>
+      body {
+          margin: 0px;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      const fullscreen = (new URL(window.location.href)).searchParams.get("fs") || false;
+      var canvasWidth = parseInt((new URL(window.location.href)).searchParams.get("cw") || 800);
+      var canvasHeight = parseInt((new URL(window.location.href)).searchParams.get("ch") || 600);
+      var canvasContext = (new URL(window.location.href)).searchParams.get("ctx") || false;
+      var canvasContextPaint = (new URL(window.location.href)).searchParams.get("ctxp") || false;
+      var fps = (new URL(window.location.href)).searchParams.get("fps") || false;
+
+      if (fullscreen) {
+          canvasWidth = window.innerWidth;
+          canvasHeight = window.innerHeight;
+      }
+
+      var canvas = document.createElement("canvas");
+      canvas.width = canvasWidth;
+      canvas.height = canvasHeight;
+      if (!fullscreen)
+          canvas.style.border = "1px solid #000";
+      document.body.appendChild(canvas);
+
+      var ctx;
+      if (canvasContext) {
+          ctx = canvas.getContext("2d");
+          if (canvasContextPaint) {
+              ctx.fillStyle = "rgb(200 200 200)";
+              ctx.fillRect(0, 0, canvas.width, canvas.height);
+          }
+      }
+
+      // Poor's man FPS.
+      var lastFPSCalculation = Date.now();
+      var framesSinceLastFPSCalculation = 0;
+
+      function updateFPS() {
+          framesSinceLastFPSCalculation++;
+          var now = Date.now();
+          if (now - lastFPSCalculation > 1000) {
+              console.log("FPS: " + (framesSinceLastFPSCalculation / ((now - lastFPSCalculation) / 1000)));
+              lastFPSCalculation = now;
+              framesSinceLastFPSCalculation = 0;
+          }
+          requestAnimationFrame(updateFPS);
+      }
+
+      if (fps)
+          requestAnimationFrame(updateFPS);
+    </script>
+  </body>
+</html>

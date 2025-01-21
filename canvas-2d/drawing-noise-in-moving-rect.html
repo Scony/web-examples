@@ -1,0 +1,87 @@
+<html>
+  <head>
+    <style>
+      body {
+          margin: 0px;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      const fullscreen = (new URL(window.location.href)).searchParams.get("fs") || false;
+      var canvasWidth = parseInt((new URL(window.location.href)).searchParams.get("cw") || 800);
+      var canvasHeight = parseInt((new URL(window.location.href)).searchParams.get("ch") || 600);
+      const rectWidth = parseInt((new URL(window.location.href)).searchParams.get("rw") || 7);
+      var subrects = parseInt((new URL(window.location.href)).searchParams.get("srs") || 1);
+      const eraseWidth = parseInt((new URL(window.location.href)).searchParams.get("ew") || 3);
+      const offsetStep = parseInt((new URL(window.location.href)).searchParams.get("os") || rectWidth);
+
+      if (fullscreen) {
+          canvasWidth = window.innerWidth;
+          canvasHeight = window.innerHeight;
+      }
+      const subrectHeight = canvasHeight <= subrects ? 1 : Math.floor(canvasHeight / subrects);
+      subrects = Math.floor(canvasHeight / subrectHeight);
+
+      var canvas = document.createElement("canvas");
+      canvas.width = canvasWidth;
+      canvas.height = canvasHeight;
+      if (!fullscreen)
+          canvas.style.border = "1px solid #000";
+      document.body.appendChild(canvas);
+
+      var ctx = canvas.getContext("2d");
+      ctx.fillStyle = "rgb(200 200 200)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      var offset = 0;
+
+      function getRandomColor() {
+          var letters = '0123456789ABCDEF';
+          var color = '#';
+          for (var i = 0; i < 6; i++) {
+              color += letters[Math.floor(Math.random() * 16)];
+          }
+          return color;
+      }
+
+      // Poor's man FPS.
+      var lastFPSCalculation = Date.now();
+      var framesSinceLastFPSCalculation = 0;
+
+      function updateFPS() {
+          framesSinceLastFPSCalculation++;
+          var now = Date.now();
+          if (now - lastFPSCalculation > 1000) {
+              console.log("FPS: " + (framesSinceLastFPSCalculation / ((now - lastFPSCalculation) / 1000)));
+              lastFPSCalculation = now;
+              framesSinceLastFPSCalculation = 0;
+          }
+      }
+
+      function paintNoise() {
+          updateFPS();
+          const firstSubrecExtraFill = canvas.height - subrects * subrectHeight;
+          for (var subrectIndex = 0; subrectIndex < subrects; subrectIndex++) {
+              ctx.fillStyle = getRandomColor();
+              var extraFill = subrectIndex == 0 ? firstSubrecExtraFill : 0;
+              var extraOffset = subrectIndex == 0 ? 0 : firstSubrecExtraFill;
+              ctx.fillRect(offset, extraOffset + subrectIndex * subrectHeight, rectWidth, subrectHeight + extraFill);
+          }
+          ctx.fillStyle = "rgb(200 200 200)";
+          ctx.fillRect(rectWidth + offset, 0, eraseWidth, canvas.height);
+
+          offset += offsetStep;
+          if (offset + rectWidth > canvas.width)
+              offset = 0;
+      }
+
+      function rafCallback() {
+          paintNoise();
+          requestAnimationFrame(rafCallback);
+      }
+
+      requestAnimationFrame(rafCallback);
+    </script>
+  </body>
+</html>
