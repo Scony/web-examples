@@ -15,6 +15,7 @@
       var subrects = parseInt((new URL(window.location.href)).searchParams.get("srs") || 1);
       const eraseWidth = parseInt((new URL(window.location.href)).searchParams.get("ew") || 3);
       const offsetStep = parseInt((new URL(window.location.href)).searchParams.get("os") || rectWidth);
+      const offsetSpread = parseInt((new URL(window.location.href)).searchParams.get("osp") || 0);
 
       if (fullscreen) {
           canvasWidth = window.innerWidth;
@@ -34,7 +35,13 @@
       ctx.fillStyle = "rgb(200 200 200)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      var offset = 0;
+      var offsets = [];
+      for (var subrectIndex = 0; subrectIndex < subrects; subrectIndex++) {
+          if (!offsetSpread)
+              offsets.push(0);
+          else
+              offsets.push((subrectIndex * (rectWidth + offsetSpread - 1)) % canvasWidth);
+      }
 
       function getRandomColor() {
           var letters = '0123456789ABCDEF';
@@ -45,7 +52,7 @@
           return color;
       }
 
-      // Poor's man FPS.
+      // Poor`s man FPS.
       var lastFPSCalculation = Date.now();
       var framesSinceLastFPSCalculation = 0;
 
@@ -66,14 +73,15 @@
               ctx.fillStyle = getRandomColor();
               var extraFill = subrectIndex == 0 ? firstSubrecExtraFill : 0;
               var extraOffset = subrectIndex == 0 ? 0 : firstSubrecExtraFill;
-              ctx.fillRect(offset, extraOffset + subrectIndex * subrectHeight, rectWidth, subrectHeight + extraFill);
-          }
-          ctx.fillStyle = "rgb(200 200 200)";
-          ctx.fillRect(rectWidth + offset, 0, eraseWidth, canvas.height);
+              ctx.fillRect(offsets[subrectIndex], extraOffset + subrectIndex * subrectHeight, rectWidth, subrectHeight + extraFill);
 
-          offset += offsetStep;
-          if (offset + rectWidth > canvas.width)
-              offset = 0;
+              ctx.fillStyle = "rgb(200 200 200)";
+              ctx.fillRect(rectWidth + offsets[subrectIndex], extraOffset + subrectIndex * subrectHeight, eraseWidth, subrectHeight + extraFill);
+
+              offsets[subrectIndex] += offsetStep;
+              if (offsets[subrectIndex] + rectWidth > canvas.width)
+                  offsets[subrectIndex] = 0;
+          }
       }
 
       function rafCallback() {
