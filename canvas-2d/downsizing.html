@@ -1,0 +1,27 @@
+<html>
+  <head>
+    <style>
+      body {
+          margin: 0px;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      var canvas = document.createElement("canvas");
+      canvas.width = 100;
+      canvas.height = 100;
+      canvas.style.border = "1px solid #000";
+      document.body.appendChild(canvas);
+
+      var ctx = canvas.getContext("2d");
+      ctx.fillStyle = "yellow";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      setTimeout(() => {
+          canvas.height = 50;
+          canvas.width = 50;
+      }, 3000);
+    </script>
+  </body>
+</html>
