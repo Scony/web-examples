@@ -1,0 +1,97 @@
+<html>
+  <head>
+    <style>
+      body {
+          margin: 0px;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      const fullscreen = (new URL(window.location.href)).searchParams.get("fs") || false;
+      const preserveDrawingBuffer = parseInt((new URL(window.location.href)).searchParams.get("pdb") || 1) > 0;
+      const antialias = parseInt((new URL(window.location.href)).searchParams.get("aa") || 1) > 0;
+      var canvasWidth = parseInt((new URL(window.location.href)).searchParams.get("cw") || 800);
+      var canvasHeight = parseInt((new URL(window.location.href)).searchParams.get("ch") || 600);
+      const rectWidth = parseInt((new URL(window.location.href)).searchParams.get("rw") || 7);
+      var subrects = parseInt((new URL(window.location.href)).searchParams.get("srs") || 1);
+      const eraseWidth = parseInt((new URL(window.location.href)).searchParams.get("ew") || 3);
+      const offsetStep = parseInt((new URL(window.location.href)).searchParams.get("os") || rectWidth);
+      const offsetSpread = parseInt((new URL(window.location.href)).searchParams.get("osp") || 0);
+
+      if (fullscreen) {
+          canvasWidth = window.innerWidth;
+          canvasHeight = window.innerHeight;
+      }
+      const subrectHeight = canvasHeight <= subrects ? 1 : Math.floor(canvasHeight / subrects);
+      subrects = Math.floor(canvasHeight / subrectHeight);
+
+      var canvas = document.createElement("canvas");
+      canvas.width = canvasWidth;
+      canvas.height = canvasHeight;
+      if (!fullscreen)
+          canvas.style.border = "1px solid #000";
+      document.body.appendChild(canvas);
+
+      const gray = 200/256;
+      var gl = canvas.getContext("webgl", {preserveDrawingBuffer: preserveDrawingBuffer, antialias: antialias});
+      gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+      gl.clearColor(gray, gray, gray, 1.0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.enable(gl.SCISSOR_TEST);
+
+      var offsets = [];
+      for (var subrectIndex = 0; subrectIndex < subrects; subrectIndex++) {
+          if (!offsetSpread)
+              offsets.push(0);
+          else
+              offsets.push((subrectIndex * (rectWidth + offsetSpread - 1)) % canvasWidth);
+      }
+
+      function getRandomColorCompontent() {
+          return Math.random();
+      }
+
+      // Poor`s man FPS.
+      var lastFPSCalculation = Date.now();
+      var framesSinceLastFPSCalculation = 0;
+
+      function updateFPS() {
+          framesSinceLastFPSCalculation++;
+          var now = Date.now();
+          if (now - lastFPSCalculation > 1000) {
+              console.log("FPS: " + (framesSinceLastFPSCalculation / ((now - lastFPSCalculation) / 1000)));
+              lastFPSCalculation = now;
+              framesSinceLastFPSCalculation = 0;
+          }
+      }
+
+      function paintNoise() {
+          updateFPS();
+          const firstSubrecExtraFill = canvas.height - subrects * subrectHeight;
+          for (var subrectIndex = 0; subrectIndex < subrects; subrectIndex++) {
+              var extraFill = subrectIndex == 0 ? firstSubrecExtraFill : 0;
+              var extraOffset = subrectIndex == 0 ? 0 : firstSubrecExtraFill;
+              gl.scissor(offsets[subrectIndex], canvasHeight - (extraOffset + subrectIndex * subrectHeight + subrectHeight + extraFill), rectWidth, subrectHeight + extraFill);
+              gl.clearColor(getRandomColorCompontent(), getRandomColorCompontent(), getRandomColorCompontent(), 1.0);
+              gl.clear(gl.COLOR_BUFFER_BIT);
+
+              gl.scissor(rectWidth + offsets[subrectIndex], canvasHeight - (extraOffset + subrectIndex * subrectHeight + subrectHeight + extraFill), eraseWidth, subrectHeight + extraFill);
+              gl.clearColor(gray, gray, gray, 1.0);
+              gl.clear(gl.COLOR_BUFFER_BIT);
+
+              offsets[subrectIndex] += offsetStep;
+              if (offsets[subrectIndex] + rectWidth > canvas.width)
+                  offsets[subrectIndex] = 0;
+          }
+      }
+
+      function rafCallback() {
+          paintNoise();
+          requestAnimationFrame(rafCallback);
+      }
+
+      requestAnimationFrame(rafCallback);
+    </script>
+  </body>
+</html>
