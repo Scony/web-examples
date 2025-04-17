@@ -16,6 +16,7 @@
       const eraseWidth = parseInt((new URL(window.location.href)).searchParams.get("ew") || 3);
       const offsetStep = parseInt((new URL(window.location.href)).searchParams.get("os") || rectWidth);
       const offsetSpread = parseInt((new URL(window.location.href)).searchParams.get("osp") || 0);
+      const borderWidth = parseInt((new URL(window.location.href)).searchParams.get("b") || 1);
 
       if (fullscreen) {
           canvasWidth = window.innerWidth;
@@ -28,7 +29,7 @@
       canvas.width = canvasWidth;
       canvas.height = canvasHeight;
       if (!fullscreen)
-          canvas.style.border = "1px solid #000";
+          canvas.style.border = borderWidth + "px solid #000";
       document.body.appendChild(canvas);
 
       var ctx = canvas.getContext("2d");
