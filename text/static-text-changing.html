@@ -1,0 +1,27 @@
+<html>
+  <head>
+    <style>
+      body {
+          font-size: 100pt;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      var intervalMs = parseInt((new URL(window.location.href)).searchParams.get("i") || 1000);
+      var text1 = (new URL(window.location.href)).searchParams.get("t1") || "a<b>b</b>c<b>d</b>e<b>f</b>g<b>h</b>i";
+      var text2 = (new URL(window.location.href)).searchParams.get("t2") || "1<b>2</b>3<b>4</b>5<b>6</b>7<b>8</b>9";
+      var rawText = parseInt((new URL(window.location.href)).searchParams.get("rt") || 0) > 0;
+
+      const texts = [text1, text2];
+      var currentText = 0;
+      setInterval(() => {
+          if (!rawText)
+              document.body.innerHTML = texts[currentText];
+          else
+              document.body.innerText = texts[currentText];
+          currentText = (currentText + 1) % 2;
+      }, intervalMs);
+    </script>
+  </body>
+</html>
