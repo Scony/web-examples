@@ -1,0 +1,77 @@
+<html>
+  <head>
+    <style>
+      span {
+          display: inline-block;
+          font-size: 5pt;
+          border: 1px solid #000;
+          contain: strict;
+          width: 10px;
+          height: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      var cols = parseInt((new URL(window.location.href)).searchParams.get("cs") || 1);
+      var rows = parseInt((new URL(window.location.href)).searchParams.get("rs") || 1);
+      var intervalMs = parseInt((new URL(window.location.href)).searchParams.get("i") || 1000);
+      var raf = parseInt((new URL(window.location.href)).searchParams.get("raf") || 0) > 0;
+
+      function createNewElementWithClass(elementName, className, lambda = (el) => {}) {
+          var newElement = document.createElement(elementName);
+          newElement.className = className;
+          lambda(newElement);
+          return newElement;
+      }
+
+      function createNewElement(elementName, lambda = (el) => {}) {
+          var newElement = document.createElement(elementName);
+          lambda(newElement);
+          return newElement;
+      }
+
+      function getRandomIntInclusive(min, max) {
+          const minCeiled = Math.ceil(min);
+          const maxFloored = Math.floor(max);
+          return Math.floor(Math.random() * (maxFloored - minCeiled + 1) + minCeiled);
+      }
+
+      for (var r = 0; r < rows; r++) {
+          var row = createNewElement("div");
+          for (var c = 0; c < cols; c++) {
+              var col = createNewElement("span");
+              row.appendChild(col);
+          }
+          document.body.appendChild(row);
+      }
+
+      const cells = document.getElementsByTagName("span");
+
+      var numbers = []
+      for (var i = 0; i < cells.length; i++) {
+          numbers.push([getRandomIntInclusive(1000,9999), getRandomIntInclusive(1000,9999)])
+      }
+
+      var iteration = 0;
+      function renderNumbers() {
+          for (var i = 0; i < cells.length; i++) {
+              cells[i].innerText = numbers[i][iteration % 2];
+          }
+          iteration++;
+      }
+      renderNumbers();
+
+      if (raf) {
+          requestAnimationFrame(function render() {
+              renderNumbers();
+              requestAnimationFrame(render);
+          });
+      } else {
+          setInterval(() => {
+              renderNumbers();
+          }, intervalMs);
+      }
+    </script>
+  </body>
+</html>
