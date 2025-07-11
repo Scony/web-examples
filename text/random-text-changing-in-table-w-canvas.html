@@ -1,0 +1,60 @@
+<html>
+  <head>
+    <style>
+      canvas {
+          border: 1px solid #000;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      var cols = parseInt((new URL(window.location.href)).searchParams.get("cs") || 1);
+      var rows = parseInt((new URL(window.location.href)).searchParams.get("rs") || 1);
+      var intervalMs = parseInt((new URL(window.location.href)).searchParams.get("i") || 1000);
+
+      function createNewElementWithClass(elementName, className, lambda = (el) => {}) {
+          var newElement = document.createElement(elementName);
+          newElement.className = className;
+          lambda(newElement);
+          return newElement;
+      }
+
+      function createNewElement(elementName, lambda = (el) => {}) {
+          var newElement = document.createElement(elementName);
+          lambda(newElement);
+          return newElement;
+      }
+
+      function getRandomIntInclusive(min, max) {
+          const minCeiled = Math.ceil(min);
+          const maxFloored = Math.floor(max);
+          return Math.floor(Math.random() * (maxFloored - minCeiled + 1) + minCeiled);
+      }
+
+      var ctxs = [];
+
+      for (var r = 0; r < rows; r++) {
+          var row = createNewElement("div");
+          for (var c = 0; c < cols; c++) {
+              var col = createNewElement("canvas");
+              col.width = 10;
+              col.height = 10;
+              var ctx = col.getContext("2d");
+              ctx.textBaseline = "top";
+              ctx.font = "5pt auto";
+              ctxs.push(ctx);
+              ctx.fillText(getRandomIntInclusive(0,9999), 0, 3);
+              row.appendChild(col);
+          }
+          document.body.appendChild(row);
+      }
+
+      setInterval(() => {
+          for (let ctx of ctxs) {
+              ctx.clearRect(0, 0, 10, 10);
+              ctx.fillText(getRandomIntInclusive(0,9999), 0, 3);
+          }
+      }, intervalMs);
+    </script>
+  </body>
+</html>

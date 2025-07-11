@@ -1,13 +1,17 @@
 <html>
   <head>
     <style>
-      span {
-          display: inline-block;
+      input {
           font-size: 5pt;
+          font-family: auto;
           border: 1px solid #000;
-          contain: strict;
+          box-sizing: content-box;
+          padding: 0;
           width: 10px;
           height: 10px;
+      }
+      input:disabled {
+          color: black;
       }
     </style>
   </head>
@@ -16,9 +20,6 @@
       var cols = parseInt((new URL(window.location.href)).searchParams.get("cs") || 1);
       var rows = parseInt((new URL(window.location.href)).searchParams.get("rs") || 1);
       var intervalMs = parseInt((new URL(window.location.href)).searchParams.get("i") || 1000);
-      var text1 = (new URL(window.location.href)).searchParams.get("t1") || "abc<b>def</b>ghi";
-      var text2 = (new URL(window.location.href)).searchParams.get("t2") || "jkl<b>mno</b>pqr";
-      var rawText = parseInt((new URL(window.location.href)).searchParams.get("rt") || 0) > 0;
 
       function createNewElementWithClass(elementName, className, lambda = (el) => {}) {
           var newElement = document.createElement(elementName);
@@ -33,29 +34,27 @@
           return newElement;
       }
 
+      function getRandomIntInclusive(min, max) {
+          const minCeiled = Math.ceil(min);
+          const maxFloored = Math.floor(max);
+          return Math.floor(Math.random() * (maxFloored - minCeiled + 1) + minCeiled);
+      }
+
       for (var r = 0; r < rows; r++) {
           var row = createNewElement("div");
           for (var c = 0; c < cols; c++) {
-              var col = createNewElement("span");
-              if (!rawText)
-                  col.innerHTML = text1;
-              else
-                  col.innerText = text1;
+              var col = createNewElement("input");
+              col.value = getRandomIntInclusive(0,9999);
+              col.disabled = true;
               row.appendChild(col);
           }
           document.body.appendChild(row);
       }
 
-      var texts = [text1, text2];
-      var currentText = 0;
-      const colEls = document.getElementsByTagName("span");
+      const colEls = document.getElementsByTagName("input");
       setInterval(() => {
-          currentText = (currentText + 1) % 2;
           for (let col of colEls) {
-              if (!rawText)
-                  col.innerHTML = texts[currentText];
-              else
-                  col.innerText = texts[currentText];
+              col.value = getRandomIntInclusive(0,9999);
           }
       }, intervalMs);
     </script>
