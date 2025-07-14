@@ -1,0 +1,92 @@
+<html>
+  <head>
+    <style>
+      .numberContainer {
+          display: inline-block;
+          font: 22px monospace;
+          line-height: 30px;
+          border: 1px solid #000;
+          contain: strict;
+          white-space: nowrap;
+          width: 30px;
+          height: 30px;
+      }
+      .digitContainer {
+          display: inline-block;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      var cols = parseInt((new URL(window.location.href)).searchParams.get("cs") || 1);
+      var rows = parseInt((new URL(window.location.href)).searchParams.get("rs") || 1);
+      var intervalMs = parseInt((new URL(window.location.href)).searchParams.get("i") || 1000);
+      var raf = parseInt((new URL(window.location.href)).searchParams.get("raf") || 0) > 0;
+      var maxNumber = parseInt((new URL(window.location.href)).searchParams.get("mx") || 99)
+
+      function createNewElementWithClass(elementName, className, lambda = (el) => {}) {
+          var newElement = document.createElement(elementName);
+          newElement.className = className;
+          lambda(newElement);
+          return newElement;
+      }
+
+      function createNewElement(elementName, lambda = (el) => {}) {
+          var newElement = document.createElement(elementName);
+          lambda(newElement);
+          return newElement;
+      }
+
+      function getRandomIntInclusive(min, max) {
+          const minCeiled = Math.ceil(min);
+          const maxFloored = Math.floor(max);
+          return Math.floor(Math.random() * (maxFloored - minCeiled + 1) + minCeiled);
+      }
+
+      const maxDigits = maxNumber.toString().length;
+      for (var r = 0; r < rows; r++) {
+          var row = createNewElement("div");
+          for (var c = 0; c < cols; c++) {
+              var col = createNewElementWithClass("span", "numberContainer");
+              for (var digitIndex = 0; digitIndex < maxDigits; digitIndex++) {
+                  var digit = createNewElementWithClass("span", "digitContainer");
+                  digit.innerHTML = ' <br>0<br>1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9';
+                  digit.scrollTop = 30;
+                  col.appendChild(digit);
+              }
+              row.appendChild(col);
+          }
+          document.body.appendChild(row);
+      }
+
+      const colEls = document.getElementsByClassName("numberContainer");
+      function renderNumbers() {
+          for (let el of colEls) {
+              const number = getRandomIntInclusive(0, maxNumber);
+              const numberStr = number.toString();
+              for (var digitIndexInEl = 0; digitIndexInEl < maxDigits; digitIndexInEl++) {
+                  const digitIndexInStr = digitIndexInEl - (maxDigits - numberStr.length);
+                  if (digitIndexInStr < 0) {
+                      el.children[digitIndexInEl].style.transform = 'translateY(0px)';
+                  } else {
+                      const digit = parseInt(numberStr[digitIndexInStr]);
+                      el.children[digitIndexInEl].style.transform = 'translateY(-'+((digit+1)*30)+'px)';
+                  }
+              }
+          }
+      }
+      renderNumbers();
+
+      if (raf) {
+          requestAnimationFrame(function render() {
+              renderNumbers();
+              requestAnimationFrame(render);
+          });
+      } else {
+          setInterval(() => {
+              renderNumbers();
+          }, intervalMs);
+      }
+    </script>
+  </body>
+</html>
