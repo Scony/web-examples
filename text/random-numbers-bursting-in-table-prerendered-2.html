@@ -1,0 +1,106 @@
+<html>
+  <head>
+    <style>
+      .cell {
+          display: inline-block;
+          font: 22px monospace;
+          line-height: 30px;
+          border: 1px solid #000;
+          contain: strict;
+          overflow: hidden;
+          width: 30px;
+          height: 30px;
+      }
+      .container {
+          will-change: transform;
+      }
+      p {
+          margin: 0px;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      const cols = parseInt((new URL(window.location.href)).searchParams.get("cs") || 1);
+      const rows = parseInt((new URL(window.location.href)).searchParams.get("rs") || 1);
+      const maxNumber = parseInt((new URL(window.location.href)).searchParams.get("mx") || 99);
+      const idleFrames = parseInt((new URL(window.location.href)).searchParams.get("if") || 2);
+
+      function createNewElementWithClass(elementName, className, lambda = (el) => {}) {
+          var newElement = document.createElement(elementName);
+          newElement.className = className;
+          lambda(newElement);
+          return newElement;
+      }
+
+      function createNewElement(elementName, lambda = (el) => {}) {
+          var newElement = document.createElement(elementName);
+          lambda(newElement);
+          return newElement;
+      }
+
+      function getRandomIntInclusive(min, max) {
+          const minCeiled = Math.ceil(min);
+          const maxFloored = Math.floor(max);
+          return Math.floor(Math.random() * (maxFloored - minCeiled + 1) + minCeiled);
+      }
+
+      const maxDigits = maxNumber.toString().length;
+      for (var r = 0; r < rows; r++) {
+          var row = createNewElement("div");
+          for (var c = 0; c < cols; c++) {
+              var col = createNewElementWithClass("span", "cell");
+              var d = createNewElementWithClass("span", "container");
+              d.appendChild(createNewElement("p", (el) => { el.innerText = "-".repeat(maxDigits); }));
+              d.appendChild(createNewElement("p", (el) => { el.innerText = "-".repeat(maxDigits); }));
+              col.appendChild(d);
+              row.appendChild(col);
+          }
+          document.body.appendChild(row);
+      }
+
+      const colEls = document.getElementsByClassName("cell");
+      var updateIndex = 1;
+      const numberOfNumbers = cols * rows;
+      const numbersToUpdatePerFrame = idleFrames <= 0 ? 0 : Math.ceil(numberOfNumbers / idleFrames);
+      var numbersToUpdateLeft = numberOfNumbers;
+      var frameNumber = 1;
+
+      function renderNumbers() {
+          for (let col of colEls) {
+              col.scrollTop = updateIndex * 99;
+          }
+          updateIndex = 1 - updateIndex;
+          numbersToUpdateLeft = numberOfNumbers;
+      }
+
+      function updateNumbers() {
+          if (numbersToUpdateLeft > 0) {
+              const begin = numberOfNumbers - numbersToUpdateLeft;
+              const end = Math.min(begin + numbersToUpdatePerFrame, numberOfNumbers);
+              if (begin < end) {
+                  colEls[begin].style.backgroundColor = !colEls[begin].style.backgroundColor || colEls[begin].style.backgroundColor == "white" ? "lightgray" : "white";
+              } else {
+                  colEls[0].style.backgroundColor = !colEls[0].style.backgroundColor || colEls[0].style.backgroundColor == "white" ? "lightgray" : "white";
+              }
+              for (var i = begin; i < end; i++) {
+                  colEls[i].children[0].children[updateIndex].innerText = getRandomIntInclusive(0, maxNumber);
+              }
+              numbersToUpdateLeft -= numbersToUpdatePerFrame;
+          } else {
+              colEls[0].style.backgroundColor = !colEls[0].style.backgroundColor || colEls[0].style.backgroundColor == "white" ? "lightgray" : "white";
+          }
+      }
+
+      requestAnimationFrame(function render() {
+          if ((frameNumber % (idleFrames+1)) == 0) {
+              renderNumbers();
+          } else {
+              updateNumbers();
+          }
+          frameNumber++;
+          requestAnimationFrame(render);
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,72 @@
+<html>
+  <head>
+    <style>
+      span {
+          display: inline-block;
+          font: 22px monospace;
+          line-height: 30px;
+          border: 1px solid #000;
+          contain: strict;
+          overflow: hidden;
+          width: 30px;
+          height: 30px;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      const cols = parseInt((new URL(window.location.href)).searchParams.get("cs") || 1);
+      const rows = parseInt((new URL(window.location.href)).searchParams.get("rs") || 1);
+      const maxNumber = parseInt((new URL(window.location.href)).searchParams.get("mx") || 99);
+      const idleFrames = parseInt((new URL(window.location.href)).searchParams.get("if") || 2);
+
+      function createNewElementWithClass(elementName, className, lambda = (el) => {}) {
+          var newElement = document.createElement(elementName);
+          newElement.className = className;
+          lambda(newElement);
+          return newElement;
+      }
+
+      function createNewElement(elementName, lambda = (el) => {}) {
+          var newElement = document.createElement(elementName);
+          lambda(newElement);
+          return newElement;
+      }
+
+      function getRandomIntInclusive(min, max) {
+          const minCeiled = Math.ceil(min);
+          const maxFloored = Math.floor(max);
+          return Math.floor(Math.random() * (maxFloored - minCeiled + 1) + minCeiled);
+      }
+
+      for (var r = 0; r < rows; r++) {
+          var row = createNewElement("div");
+          for (var c = 0; c < cols; c++) {
+              var col = createNewElement("span");
+              row.appendChild(col);
+          }
+          document.body.appendChild(row);
+      }
+
+      var frameNumber = 1;
+      const colEls = document.getElementsByTagName("span");
+      function renderNumbers() {
+          for (let col of colEls) {
+              col.innerText = getRandomIntInclusive(0, maxNumber);
+          }
+          colEls[0].style.backgroundColor = frameNumber % 2 == 1 ? "lightgray" : "white";
+      }
+      renderNumbers();
+
+      requestAnimationFrame(function render() {
+          if ((frameNumber % (idleFrames+1)) == 0) {
+              renderNumbers();
+          } else {
+              colEls[0].style.backgroundColor = frameNumber % 2 == 1 ? "lightgray" : "white";
+          }
+          frameNumber++;
+          requestAnimationFrame(render);
+      });
+    </script>
+  </body>
+</html>
