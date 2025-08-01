@@ -1,0 +1,92 @@
+<html>
+  <head>
+    <style>
+      .outerGrid {
+          display: grid;
+          gap: 10px;
+          padding: 10px;
+          background: lightgreen;
+      }
+      .grid {
+          display: grid;
+          gap: 10px;
+          grid-template-columns: 1fr 1fr 1fr;
+          grid-template-areas: "a b c";
+          padding: 10px;
+          background: orange;
+      }
+      .grid > div {
+          background: lightblue;
+      }
+      .grid:has(:nth-child(1)) > div:nth-child(1) {
+          grid-area: c;
+      }
+      .grid:has(:nth-child(2)) > div:nth-child(1) {
+          grid-area: b;
+      }
+      .grid:has(:nth-child(2)) > div:nth-child(2) {
+          grid-area: c;
+      }
+      .grid:has(:nth-child(3)) > div:nth-child(1) {
+          grid-area: a;
+      }
+      .grid:has(:nth-child(3)) > div:nth-child(2) {
+          grid-area: b;
+      }
+      .grid:has(:nth-child(3)) > div:nth-child(3) {
+          grid-area: c;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="outerGrid">
+      <div class="grid">
+        <div>1</div>
+        <div>2</div>
+        <div>3</div>
+      </div>
+      <div style="background: lightblue;">foo</div>
+    </div>
+    <script>
+      const intervalMs = parseInt((new URL(window.location.href)).searchParams.get("i") || 0);
+
+      function removeItem(index) {
+          document.getElementsByClassName("grid")[0].children[index].remove();
+      }
+
+      function insertItem(index, lambda = (el) => {}) {
+          var newElement = document.createElement("div");
+          lambda(newElement);
+          if (index < document.getElementsByClassName("grid")[0].children.length) {
+              const referenceElement = document.getElementsByClassName("grid")[0].children[index];
+              document.getElementsByClassName("grid")[0].insertBefore(newElement, referenceElement);
+          } else {
+              document.getElementsByClassName("grid")[0].appendChild(newElement);
+          }
+      }
+
+      const changes = [
+          () => { removeItem(0); },
+          () => { removeItem(0); },
+          () => { removeItem(0); },
+          () => { insertItem(9, (el) => el.innerText = 4); },
+          () => { insertItem(9, (el) => el.innerText = 5); },
+          () => { insertItem(9, (el) => el.innerText = 6); },
+          () => { removeItem(2); },
+          () => { removeItem(1); },
+          () => { removeItem(0); },
+          () => { insertItem(0, (el) => el.innerText = 7); },
+          () => { insertItem(0, (el) => el.innerText = 8); },
+          () => { insertItem(0, (el) => el.innerText = 9); },
+      ];
+
+      if (intervalMs > 0) {
+          let nextChangeIndex = 0;
+          setInterval(() => {
+              if (nextChangeIndex < changes.length)
+                  changes[nextChangeIndex++]();
+          }, intervalMs);
+      }
+    </script>
+  </body>
+</html>

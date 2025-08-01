@@ -1,0 +1,84 @@
+<html>
+  <head>
+    <style>
+      .outerGrid {
+          display: grid;
+          gap: 10px;
+          padding: 10px;
+          background: lightgreen;
+      }
+      .grid {
+          display: grid;
+          gap: 10px;
+          grid-template-columns: 1fr 1fr 1fr;
+          grid-template-areas: "a b c";
+          padding: 10px;
+          background: orange;
+      }
+      .grid > div {
+          background: lightblue;
+      }
+      .A {
+          grid-area: a;
+      }
+      .B {
+          grid-area: b;
+      }
+      .C {
+          grid-area: c;
+      }
+      .D {
+          grid-area: a;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="outerGrid">
+      <div class="grid">
+        <div class="A">A</div>
+        <div class="B">B</div>
+        <div class="C">C</div>
+      </div>
+      <div style="background: lightblue;">foo</div>
+    </div>
+    <script>
+      const intervalMs = parseInt((new URL(window.location.href)).searchParams.get("i") || 0);
+
+      function removeItemWithClass(className) {
+          for (const element of document.getElementsByClassName(className)) {
+              element.remove();
+          }
+      }
+
+      function addItemWithClass(className, lambda = (el) => {}) {
+          var newElement = document.createElement("div");
+          newElement.className = className;
+          lambda(newElement);
+          document.getElementsByClassName("grid")[0].appendChild(newElement);
+      }
+
+      const changes = [
+          () => { removeItemWithClass("A"); },
+          () => { addItemWithClass("A", (el) => el.innerText = 'A'); },
+          () => { removeItemWithClass("B"); },
+          () => { removeItemWithClass("C"); },
+          () => { addItemWithClass("C", (el) => el.innerText = 'C'); },
+          () => { addItemWithClass("B", (el) => el.innerText = 'B'); },
+          () => { addItemWithClass("D", (el) => el.innerText = 'D'); },
+          () => { removeItemWithClass("D"); },
+          () => { removeItemWithClass("B"); },
+          () => { removeItemWithClass("A"); },
+          () => { addItemWithClass("A", (el) => el.innerText = 'A'); },
+          () => { addItemWithClass("D", (el) => el.innerText = 'D'); },
+      ];
+
+      if (intervalMs > 0) {
+          let nextChangeIndex = 0;
+          setInterval(() => {
+              if (nextChangeIndex < changes.length)
+                  changes[nextChangeIndex++]();
+          }, intervalMs);
+      }
+    </script>
+  </body>
+</html>
