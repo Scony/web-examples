@@ -1,0 +1,50 @@
+<html>
+  <head>
+    <style>
+      .container {
+          padding: 10px;
+          background: orange;
+      }
+      .container > div {
+          background: lightgray;
+      }
+      .container:has(:nth-child(1)) > div:nth-child(1) {
+          background: lightblue;
+      }
+      .container:has(:nth-child(2)) > div:nth-child(1) {
+          background: green;
+      }
+      .container:has(:nth-child(2)) > div:nth-child(2) {
+          background: lightblue;
+      }
+      .container:has(:nth-child(3)) > div:nth-child(1) {
+          background: red;
+      }
+      .container:has(:nth-child(3)) > div:nth-child(2) {
+          background: green;
+      }
+      .container:has(:nth-child(3)) > div:nth-child(3) {
+          background: lightblue;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div>Green</div>
+      <div>Blue</div>
+    </div>
+    <script>
+      const intervalMs = parseInt((new URL(window.location.href)).searchParams.get("i") || 0);
+
+      if (intervalMs > 0) {
+          setTimeout(() => {
+              const container = document.getElementsByClassName("container")[0];
+              let newElement = document.createElement("div");
+              newElement.innerText = 'Red';
+              const referenceElement = container.children[0];
+              container.insertBefore(newElement, referenceElement);
+          }, intervalMs);
+      }
+    </script>
+  </body>
+</html>
