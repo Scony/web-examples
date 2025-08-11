@@ -1,0 +1,55 @@
+<html>
+  <head>
+    <script src="../common/benchmarking.js"></script>
+  </head>
+  <body>
+    <script>
+      const nodes = parseInt((new URL(window.location.href)).searchParams.get("ns") || 0);
+      const useDivInsteadOfSpan = parseInt((new URL(window.location.href)).searchParams.get("dv") || 0) > 0;
+      const raf = parseInt((new URL(window.location.href)).searchParams.get("raf") || 0) > 0;
+      const maxNumber = parseInt((new URL(window.location.href)).searchParams.get("mx") || 99999999);
+      const visualResults = parseInt((new URL(window.location.href)).searchParams.get("vr") || 0) > 0;
+
+      function createNewElement(elementName, lambda = (el) => {}) {
+          var newElement = document.createElement(elementName);
+          lambda(newElement);
+          return newElement;
+      }
+
+      for (let i = 0; i < nodes; ++i) {
+          let element = createNewElement(useDivInsteadOfSpan ? 'div' : 'span');
+          document.body.appendChild(element);
+      }
+
+      let elementToUpdate = createNewElement('span');
+      elementToUpdate.innerText = '---';
+      document.body.appendChild(elementToUpdate);
+
+      function getRandomIntInclusive(min, max) {
+          const minCeiled = Math.ceil(min);
+          const maxFloored = Math.floor(max);
+          return Math.floor(Math.random() * (maxFloored - minCeiled + 1) + minCeiled);
+      }
+
+      function run() {
+          elementToUpdate.innerText = getRandomIntInclusive(0, maxNumber);
+          Benchmarking.forceLayout();
+      }
+
+      if (raf) {
+          Benchmarking.forceLayout();
+          Benchmarking.enableFPSLogging();
+          requestAnimationFrame(function render() {
+              run();
+              requestAnimationFrame(render);
+          });
+      } else {
+          Benchmarking.forceLayout();
+          Benchmarking.measureRunsPerSecond({
+              benchmarkFunction: run,
+              visualResults: visualResults,
+          });
+      }
+    </script>
+  </body>
+</html>

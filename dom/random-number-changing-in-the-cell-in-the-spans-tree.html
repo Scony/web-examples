@@ -1,0 +1,81 @@
+<html>
+  <head>
+    <script src="../common/benchmarking.js"></script>
+    <style>
+      .cell {
+          display: inline-block;
+          font-size: 7px;
+          border: 1px solid #000;
+      }
+      </style>
+  </head>
+  <body>
+    <script>
+      const nodes = parseInt((new URL(window.location.href)).searchParams.get("ns") || 1);
+      const nodesPerGroup = parseInt((new URL(window.location.href)).searchParams.get("npg") || 0);
+      const raf = parseInt((new URL(window.location.href)).searchParams.get("raf") || 0) > 0;
+      const maxNumber = parseInt((new URL(window.location.href)).searchParams.get("mx") || 99999999);
+      const visualResults = parseInt((new URL(window.location.href)).searchParams.get("vr") || 0) > 0;
+
+      function createNewElement(elementName, lambda = (el) => {}) {
+          var newElement = document.createElement(elementName);
+          lambda(newElement);
+          return newElement;
+      }
+
+      function getRandomIntInclusive(min, max) {
+          const minCeiled = Math.ceil(min);
+          const maxFloored = Math.floor(max);
+          return Math.floor(Math.random() * (maxFloored - minCeiled + 1) + minCeiled);
+      }
+
+      var elementToUpdate = null;
+      if (nodesPerGroup) {
+          const groups = Math.ceil(nodes / nodesPerGroup);
+          for (let g = 0; g < groups; ++g) {
+              let groupElement = createNewElement('span');
+              for (let i = g * nodesPerGroup; i < (g + 1) * nodesPerGroup && i < nodes; ++i) {
+                  let element = createNewElement('span', (el) => {
+                      el.className = 'cell';
+                      el.innerText = getRandomIntInclusive(0, maxNumber);
+                  });
+                  if (i == Math.floor(nodes/2))
+                      elementToUpdate = element;
+                  groupElement.appendChild(element);
+              }
+              document.body.appendChild(groupElement);
+          }
+      } else {
+          for (let i = 0; i < nodes; ++i) {
+              let element = createNewElement('span', (el) => {
+                  el.className = 'cell';
+                  el.innerText = getRandomIntInclusive(0, maxNumber);
+              });
+              if (i == Math.floor(nodes/2))
+                  elementToUpdate = element;
+              document.body.appendChild(element);
+          }
+      }
+
+      function run() {
+          elementToUpdate.innerText = getRandomIntInclusive(0, maxNumber);
+          Benchmarking.forceLayout();
+      }
+
+      if (raf) {
+          Benchmarking.forceLayout();
+          Benchmarking.enableFPSLogging();
+          requestAnimationFrame(function render() {
+              run();
+              requestAnimationFrame(render);
+          });
+      } else {
+          Benchmarking.forceLayout();
+          Benchmarking.measureRunsPerSecond({
+              benchmarkFunction: run,
+              visualResults: visualResults,
+          });
+      }
+    </script>
+  </body>
+</html>

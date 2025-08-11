@@ -1,0 +1,58 @@
+<html>
+  <head>
+    <script src="../common/benchmarking.js"></script>
+  </head>
+  <body>
+    <script>
+      const nodes = parseInt((new URL(window.location.href)).searchParams.get("ns") || 0);
+      const useDivInsteadOfSpan = parseInt((new URL(window.location.href)).searchParams.get("dv") || 0) > 0;
+      const raf = parseInt((new URL(window.location.href)).searchParams.get("raf") || 0) > 0;
+      const maxNumber = parseInt((new URL(window.location.href)).searchParams.get("mx") || 99999999);
+      const visualResults = parseInt((new URL(window.location.href)).searchParams.get("vr") || 0) > 0;
+
+      function createNewElement(elementName, lambda = (el) => {}) {
+          var newElement = document.createElement(elementName);
+          lambda(newElement);
+          return newElement;
+      }
+
+      const textNodeHtml = '<span>---</span>';
+      let fullHtml = textNodeHtml;
+      for (let i = 0; i < nodes; ++i) {
+          fullHtml = '<span>\n \t' + fullHtml + '\n \t</span>';
+      }
+      document.body.innerHTML = fullHtml;
+
+      let elementToUpdate = document.body;
+      while (elementToUpdate.children.length > 0) {
+          elementToUpdate = elementToUpdate.children[0];
+      }
+
+      function getRandomIntInclusive(min, max) {
+          const minCeiled = Math.ceil(min);
+          const maxFloored = Math.floor(max);
+          return Math.floor(Math.random() * (maxFloored - minCeiled + 1) + minCeiled);
+      }
+
+      function run() {
+          elementToUpdate.innerText = getRandomIntInclusive(0, maxNumber);
+          Benchmarking.forceLayout();
+      }
+
+      if (raf) {
+          Benchmarking.forceLayout();
+          Benchmarking.enableFPSLogging();
+          requestAnimationFrame(function render() {
+              run();
+              requestAnimationFrame(render);
+          });
+      } else {
+          Benchmarking.forceLayout();
+          Benchmarking.measureRunsPerSecond({
+              benchmarkFunction: run,
+              visualResults: visualResults,
+          });
+      }
+    </script>
+  </body>
+</html>
