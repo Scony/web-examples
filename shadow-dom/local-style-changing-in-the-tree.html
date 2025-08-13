@@ -1,0 +1,63 @@
+<html>
+  <head>
+    <script src="../common/benchmarking.js"></script>
+  </head>
+  <body>
+    <script>
+      const nodes = parseInt((new URL(window.location.href)).searchParams.get("ns") || 1);
+      const raf = parseInt((new URL(window.location.href)).searchParams.get("raf") || 0) > 0;
+      const visualResults = parseInt((new URL(window.location.href)).searchParams.get("vr") || 0) > 0;
+      const update = (new URL(window.location.href)).searchParams.get("u");
+
+      function createNewElement(elementName, lambda = (el) => {}) {
+          var newElement = document.createElement(elementName);
+          lambda(newElement);
+          return newElement;
+      }
+
+      const styleSheet = new CSSStyleSheet();
+      styleSheet.replaceSync("span { background-color: white; }");
+
+      let parent = document.body;
+      for (let i = 0; i < nodes; ++i) {
+          let element = createNewElement('span');
+          parent.appendChild(element);
+          parent = element;
+          if (i == Math.floor(nodes / 2)) {
+              parent = parent.attachShadow({ mode: "open" });
+              parent.adoptedStyleSheets = [styleSheet];
+          }
+      }
+
+      let textParent = createNewElement('span');
+      textParent.innerText = '123456';
+      parent.appendChild(textParent);
+
+      function run() {
+          if (update == 'color') {
+              styleSheet.cssRules[0].style.color = styleSheet.cssRules[0].style.color != "red" ? "red" : "blue";
+          } else if (update == 'font-size') {
+              styleSheet.cssRules[0].style.fontSize = styleSheet.cssRules[0].style.fontSize != "10px" ? "10px" : "20px";
+          } else {
+              styleSheet.cssRules[0].style.backgroundColor = styleSheet.cssRules[0].style.backgroundColor != "yellow" ? "yellow" : "lightgray";
+          }
+          Benchmarking.forceLayout();
+      }
+
+      if (raf) {
+          Benchmarking.forceLayout();
+          Benchmarking.enableFPSLogging();
+          requestAnimationFrame(function render() {
+              run();
+              requestAnimationFrame(render);
+          });
+      } else {
+          Benchmarking.forceLayout();
+          Benchmarking.measureRunsPerSecond({
+              benchmarkFunction: run,
+              visualResults: visualResults,
+          });
+      }
+    </script>
+  </body>
+</html>

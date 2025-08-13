@@ -1,0 +1,73 @@
+<html>
+  <head>
+    <script src="../common/benchmarking.js"></script>
+    <style>
+      span {
+          background-color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      const nodes = parseInt((new URL(window.location.href)).searchParams.get("ns") || 0);
+      let shadowDoms = parseInt((new URL(window.location.href)).searchParams.get("sds") || 0);
+      shadowDoms = shadowDoms > nodes ? nodes : shadowDoms;
+      const useDivInsteadOfSpan = parseInt((new URL(window.location.href)).searchParams.get("dv") || 0) > 0;
+      const raf = parseInt((new URL(window.location.href)).searchParams.get("raf") || 0) > 0;
+      const maxNumber = parseInt((new URL(window.location.href)).searchParams.get("mx") || 99999999);
+      const visualResults = parseInt((new URL(window.location.href)).searchParams.get("vr") || 0) > 0;
+      const localRules = parseInt((new URL(window.location.href)).searchParams.get("lrs") || 0) > 0;
+
+      function createNewElement(elementName, lambda = (el) => {}) {
+          var newElement = document.createElement(elementName);
+          lambda(newElement);
+          return newElement;
+      }
+
+      let parent = document.body;
+      for (let i = 0; i < nodes; ++i) {
+          let element = createNewElement(useDivInsteadOfSpan ? 'div' : 'span');
+          parent.appendChild(element);
+          parent = element;
+          if (nodes - i <= shadowDoms) {
+              parent = parent.attachShadow({ mode: "open" });
+              if (localRules) {
+                  let style = document.createElement("style");
+                  style.innerHTML = "span { background-color: white; }";
+                  parent.appendChild(style);
+              }
+          }
+      }
+
+      let textParent = createNewElement('span');
+      textParent.innerText = '---';
+      parent.appendChild(textParent);
+
+      function getRandomIntInclusive(min, max) {
+          const minCeiled = Math.ceil(min);
+          const maxFloored = Math.floor(max);
+          return Math.floor(Math.random() * (maxFloored - minCeiled + 1) + minCeiled);
+      }
+
+      function run() {
+          document.styleSheets[0].cssRules[0].style.color = document.styleSheets[0].cssRules[0].style.color != "red" ? "red" : "blue";
+          Benchmarking.forceLayout();
+      }
+
+      if (raf) {
+          Benchmarking.forceLayout();
+          Benchmarking.enableFPSLogging();
+          requestAnimationFrame(function render() {
+              run();
+              requestAnimationFrame(render);
+          });
+      } else {
+          Benchmarking.forceLayout();
+          Benchmarking.measureRunsPerSecond({
+              benchmarkFunction: run,
+              visualResults: visualResults,
+          });
+      }
+    </script>
+  </body>
+</html>
