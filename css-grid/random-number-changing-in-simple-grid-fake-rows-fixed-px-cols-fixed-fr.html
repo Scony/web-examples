@@ -72,6 +72,7 @@
       const raf = parseInt((new URL(window.location.href)).searchParams.get("raf") || 0) > 0;
       const maxNumber = parseInt((new URL(window.location.href)).searchParams.get("mx") || 99999999);
       const visualResults = parseInt((new URL(window.location.href)).searchParams.get("vr") || 0) > 0;
+      const millisecondsPerRun = parseInt((new URL(window.location.href)).searchParams.get("ms") || 0) > 0;
 
       const textParent = document.getElementById("textHolder");
 
@@ -98,6 +99,7 @@
           Benchmarking.measureRunsPerSecond({
               benchmarkFunction: run,
               visualResults: visualResults,
+              results: millisecondsPerRun ? 'ms' : 'rps',
           });
       }
     </script>

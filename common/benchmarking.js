@@ -29,40 +29,7 @@ Benchmarking.measureRunsPerSecond = function(parameters) {
     if (!parameters.durationSeconds)
         parameters.durationSeconds = 20;
 
-    if (parameters.blocking)
-        Benchmarking.measureRunsPerSecondBlocking(parameters);
-    else
-        Benchmarking.measureRunsPerSecondNonBlocking(parameters);
-}
-
-// TODO: remove
-Benchmarking.measureRunsPerSecondBlocking = function(parameters) {
-    console.log("Started warmup");
-    setTimeout(() => {
-        const warmupBeginTime = Benchmarking.now();
-        while (true) {
-            parameters.benchmarkFunction();
-            const warmupCurrentTime = Benchmarking.now();
-            if (warmupCurrentTime - warmupBeginTime >= parameters.warmupDurationSeconds * 1000)
-                break;
-        }
-        console.log("Finished warmup");
-        console.log("Started benchmarking");
-        setTimeout(() => {
-            const benchmarkingBeginTime = Benchmarking.now();
-            let runs = 0;
-            while (true) {
-                parameters.benchmarkFunction();
-                ++runs;
-                const benchmarkingCurrentTime = Benchmarking.now();
-                if (benchmarkingCurrentTime - benchmarkingBeginTime >= parameters.durationSeconds * 1000) {
-                    const runsPerSecond = runs / ((benchmarkingCurrentTime - benchmarkingBeginTime) / 1000);
-                    console.log("Finished benchmarking: " + runsPerSecond + " runs/s");
-                    break;
-                }
-            }
-        }, 0);
-    }, 0);
+    Benchmarking.measureRunsPerSecondNonBlocking(parameters);
 }
 
 Benchmarking.measureRunsPerSecondNonBlocking = function(parameters) {
@@ -96,18 +63,22 @@ Benchmarking.measureRunsPerSecondNonBlocking = function(parameters) {
         totalTimeDeltaMs += timeDeltaMs;
         const iteration = parameters.durationSeconds - benchmarkingIterationsLeft + 1;
         const runsPerSecond = totalRuns / (totalTimeDeltaMs / 1000);
-        console.log("Benchmarking iteration " + iteration + ": " + runsPerSecond + " runs/s");
+        const result = parameters.results == 'ms'
+              ? 1000.0 / runsPerSecond
+              : runsPerSecond;
+        const resultStr = result + (parameters.results == 'ms' ? ' ms/run' : ' runs/s');
+        console.log("Benchmarking iteration " + iteration + ": " + resultStr);
         if (--benchmarkingIterationsLeft > 0)
             setTimeout(iterate, 0);
         else {
-            console.log("Finished benchmarking: " + runsPerSecond + " runs/s");
+            console.log("Finished benchmarking: " + resultStr);
             if (parameters.visualResults) {
                 let element = document.createElement("div");
                 element.style.position = 'fixed';
                 element.style.top = '0px';
                 element.style.left = '0px';
                 element.style.backgroundColor = 'orange';
-                element.innerText = "Finished benchmarking: " + runsPerSecond + " runs/s";
+                element.innerText = "Finished benchmarking: " + resultStr;
                 document.body.appendChild(element);
             }
         }

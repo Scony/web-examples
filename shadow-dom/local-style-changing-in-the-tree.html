@@ -8,6 +8,7 @@
       const raf = parseInt((new URL(window.location.href)).searchParams.get("raf") || 0) > 0;
       const visualResults = parseInt((new URL(window.location.href)).searchParams.get("vr") || 0) > 0;
       const update = (new URL(window.location.href)).searchParams.get("u");
+      const millisecondsPerRun = parseInt((new URL(window.location.href)).searchParams.get("ms") || 0) > 0;
 
       function createNewElement(elementName, lambda = (el) => {}) {
           var newElement = document.createElement(elementName);
@@ -56,6 +57,7 @@
           Benchmarking.measureRunsPerSecond({
               benchmarkFunction: run,
               visualResults: visualResults,
+              results: millisecondsPerRun ? 'ms' : 'rps',
           });
       }
     </script>

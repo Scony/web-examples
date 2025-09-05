@@ -14,6 +14,7 @@
       const maxNumber = parseInt((new URL(window.location.href)).searchParams.get("mx") || 99999999);
       const visualResults = parseInt((new URL(window.location.href)).searchParams.get("vr") || 0) > 0;
       const size = (new URL(window.location.href)).searchParams.get("s");
+      const millisecondsPerRun = parseInt((new URL(window.location.href)).searchParams.get("ms") || 0) > 0;
 
       function createNewElement(elementName, lambda = (el) => {}) {
           var newElement = document.createElement(elementName);
@@ -106,6 +107,7 @@
               Benchmarking.measureRunsPerSecond({
                   benchmarkFunction: run,
                   visualResults: visualResults,
+                  results: millisecondsPerRun ? 'ms' : 'rps',
               });
           }
       }
