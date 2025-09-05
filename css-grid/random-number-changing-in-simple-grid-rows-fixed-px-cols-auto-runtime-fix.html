@@ -1,0 +1,97 @@
+<html>
+  <head>
+    <script src="../common/benchmarking.js"></script>
+    <style>
+      .grid {
+          display: grid;
+          gap: 10px;
+          grid-template-columns: auto auto auto auto auto;
+          grid-template-rows: 100px 100px 100px 100px 100px;
+          padding: 10px;
+          background: orange;
+      }
+      span {
+          background: lightblue;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="grid">
+      <span>1</span>
+      <span>2</span>
+      <span>3</span>
+      <span>4</span>
+      <span>5</span>
+      <span>6</span>
+      <span>7</span>
+      <span>8</span>
+      <span>9</span>
+      <span>10</span>
+      <span>11</span>
+      <span>12</span>
+      <span id="textHolder">13</span>
+      <span>14</span>
+      <span>15</span>
+      <span>16</span>
+      <span>17</span>
+      <span>18</span>
+      <span>19</span>
+      <span>20</span>
+      <span>21</span>
+      <span>22</span>
+      <span>23</span>
+      <span>24</span>
+      <span>25</span>
+    </div>
+    <script>
+      const raf = parseInt((new URL(window.location.href)).searchParams.get("raf") || 0) > 0;
+      const maxNumber = parseInt((new URL(window.location.href)).searchParams.get("mx") || 99999999);
+      const visualResults = parseInt((new URL(window.location.href)).searchParams.get("vr") || 0) > 0;
+      const fixedWidth = parseInt((new URL(window.location.href)).searchParams.get("fw") || 0);
+      const fixedHeight = parseInt((new URL(window.location.href)).searchParams.get("fh") || 0);
+      const fixedColumns = parseInt((new URL(window.location.href)).searchParams.get("fcs") || 0);
+
+      const textParent = document.getElementById("textHolder");
+      const grid = textParent.parentNode;
+
+      function getRandomIntInclusive(min, max) {
+          const minCeiled = Math.ceil(min);
+          const maxFloored = Math.floor(max);
+          return Math.floor(Math.random() * (maxFloored - minCeiled + 1) + minCeiled);
+      }
+
+      function run() {
+          textParent.innerText = getRandomIntInclusive(0, maxNumber);
+          Benchmarking.forceLayout();
+      }
+
+      if (fixedWidth || fixedHeight || fixedColumns) {
+          run();
+          if (fixedWidth) {
+              grid.style.width = getComputedStyle(grid).width;
+          }
+          if (fixedHeight) {
+              grid.style.height = getComputedStyle(grid).height;
+          }
+          if (fixedColumns) {
+              grid.style.gridTemplateColumns = getComputedStyle(grid).gridTemplateColumns;
+          }
+      }
+
+      if (raf) {
+          Benchmarking.forceLayout();
+          Benchmarking.enableFPSLogging();
+          requestAnimationFrame(function render() {
+              run();
+              requestAnimationFrame(render);
+          });
+      } else {
+          Benchmarking.forceLayout();
+          Benchmarking.measureRunsPerSecond({
+              benchmarkFunction: run,
+              visualResults: visualResults,
+          });
+      }
+    </script>
+  </body>
+</html>

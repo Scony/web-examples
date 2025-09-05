@@ -1,0 +1,114 @@
+<html>
+  <head>
+    <script src="../common/benchmarking.js"></script>
+    <style>
+      .grid {
+          display: grid;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      const grids = parseInt((new URL(window.location.href)).searchParams.get("gs") || 1);
+      const raf = parseInt((new URL(window.location.href)).searchParams.get("raf") || 0) > 0;
+      const maxNumber = parseInt((new URL(window.location.href)).searchParams.get("mx") || 99999999);
+      const visualResults = parseInt((new URL(window.location.href)).searchParams.get("vr") || 0) > 0;
+      const size = (new URL(window.location.href)).searchParams.get("s");
+
+      function createNewElement(elementName, lambda = (el) => {}) {
+          var newElement = document.createElement(elementName);
+          lambda(newElement);
+          return newElement;
+      }
+
+      function getRandomColor() {
+          var letters = '0123456789ABCDEF';
+          var color = '#';
+          for (var i = 0; i < 6; i++) {
+              color += letters[Math.floor(Math.random() * 16)];
+          }
+          return color;
+      }
+
+      if (grids > 0) {
+          function generateGrid(parent, i) {
+              if (i >= grids) {
+                  return;
+              }
+              const maxGrids = 6;
+              const lastGrid = i + 1 == grids || i == maxGrids - 1;
+              if (i > maxGrids - 1) {
+                  return;
+              }
+              let cellSize = 729;
+              for (let j = 0; j <= i; ++j) {
+                  cellSize = Math.round(cellSize / 3);
+              }
+              let grid = createNewElement("div", (el) => {
+                  el.className = "grid";
+                  el.style.backgroundColor = getRandomColor();
+                  if (size == 'fr') {
+                      el.style.gridTemplateColumns = '1fr 1fr 1fr';
+                      el.style.gridTemplateRows = '1fr 1fr 1fr';
+                  } else if (size == 'auto') {
+                      el.style.gridTemplateColumns = 'auto auto auto';
+                      el.style.gridTemplateRows = 'auto auto auto';
+                  } else { // px
+                      el.style.gridTemplateColumns = cellSize + 'px ' + cellSize + 'px ' + cellSize + 'px';
+                      el.style.gridTemplateRows = cellSize + 'px ' + cellSize + 'px ' + cellSize + 'px';
+                  }
+              });
+              for (let j = 0; j < 9; ++j) {
+                  let cell;
+                  if (j == 4) {
+                      if (lastGrid) {
+                          cell = createNewElement("span", (el) => {
+                              el.innerText = j;
+                              el.id = 'textHolder';
+                          });
+                          grid.appendChild(cell);
+                      } else {
+                          generateGrid(grid, i + 1);
+                      }
+                  } else {
+                      cell = createNewElement("span", (el) => el.innerText = j);
+                      grid.appendChild(cell);
+                  }
+              }
+              parent.appendChild(grid);
+          }
+          generateGrid(document.body, 0);
+      }
+
+      const textParent = document.getElementById("textHolder");
+
+      function getRandomIntInclusive(min, max) {
+          const minCeiled = Math.ceil(min);
+          const maxFloored = Math.floor(max);
+          return Math.floor(Math.random() * (maxFloored - minCeiled + 1) + minCeiled);
+      }
+
+      function run() {
+          textParent.innerText = getRandomIntInclusive(0, maxNumber);
+          Benchmarking.forceLayout();
+      }
+
+      if (textParent) {
+          if (raf) {
+              Benchmarking.forceLayout();
+              Benchmarking.enableFPSLogging();
+              requestAnimationFrame(function render() {
+                  run();
+                  requestAnimationFrame(render);
+              });
+          } else {
+              Benchmarking.forceLayout();
+              Benchmarking.measureRunsPerSecond({
+                  benchmarkFunction: run,
+                  visualResults: visualResults,
+              });
+          }
+      }
+    </script>
+  </body>
+</html>

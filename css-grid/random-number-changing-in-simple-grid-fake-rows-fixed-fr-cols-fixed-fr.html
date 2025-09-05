@@ -1,0 +1,110 @@
+<html>
+  <head>
+    <script src="../common/benchmarking.js"></script>
+    <style>
+      .grid {
+          box-sizing: border-box;
+          padding: 10px;
+          background: orange;
+          font-size: 0px;
+          height: 100%;
+      }
+      .grid > div {
+          height: calc(20% - 8px);
+      }
+      span {
+          width: calc(20% - 8px);
+          height: 100%;
+          background: lightblue;
+          font-size: initial;
+          float: left;
+      }
+      .extraMarginLeft {
+          margin-left: 10px;
+      }
+      .extraMarginTop {
+          margin-top: 10px;
+      }
+      .clearfix {
+          clear: both;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="grid">
+      <div>
+        <span>1</span>
+        <span class="extraMarginLeft">2</span>
+        <span class="extraMarginLeft">3</span>
+        <span class="extraMarginLeft">4</span>
+        <span class="extraMarginLeft">5</span>
+        <div class="clearfix"></div>
+      </div>
+      <div class="extraMarginTop">
+        <span>6</span>
+        <span class="extraMarginLeft">7</span>
+        <span class="extraMarginLeft">8</span>
+        <span class="extraMarginLeft">9</span>
+        <span class="extraMarginLeft">10</span>
+        <div class="clearfix"></div>
+      </div>
+      <div class="extraMarginTop">
+        <span>11</span>
+        <span class="extraMarginLeft">12</span>
+        <span class="extraMarginLeft" id="textHolder">13</span>
+        <span class="extraMarginLeft">14</span>
+        <span class="extraMarginLeft">15</span>
+        <div class="clearfix"></div>
+      </div>
+      <div class="extraMarginTop">
+        <span>16</span>
+        <span class="extraMarginLeft">17</span>
+        <span class="extraMarginLeft">18</span>
+        <span class="extraMarginLeft">19</span>
+        <span class="extraMarginLeft">20</span>
+        <div class="clearfix"></div>
+      </div>
+      <div class="extraMarginTop">
+        <span>21</span>
+        <span class="extraMarginLeft">22</span>
+        <span class="extraMarginLeft">23</span>
+        <span class="extraMarginLeft">24</span>
+        <span class="extraMarginLeft">25</span>
+        <div class="clearfix"></div>
+      </div>
+    </div>
+    <script>
+      const raf = parseInt((new URL(window.location.href)).searchParams.get("raf") || 0) > 0;
+      const maxNumber = parseInt((new URL(window.location.href)).searchParams.get("mx") || 99999999);
+      const visualResults = parseInt((new URL(window.location.href)).searchParams.get("vr") || 0) > 0;
+
+      const textParent = document.getElementById("textHolder");
+
+      function getRandomIntInclusive(min, max) {
+          const minCeiled = Math.ceil(min);
+          const maxFloored = Math.floor(max);
+          return Math.floor(Math.random() * (maxFloored - minCeiled + 1) + minCeiled);
+      }
+
+      function run() {
+          textParent.innerText = getRandomIntInclusive(0, maxNumber);
+          Benchmarking.forceLayout();
+      }
+
+      if (raf) {
+          Benchmarking.forceLayout();
+          Benchmarking.enableFPSLogging();
+          requestAnimationFrame(function render() {
+              run();
+              requestAnimationFrame(render);
+          });
+      } else {
+          Benchmarking.forceLayout();
+          Benchmarking.measureRunsPerSecond({
+              benchmarkFunction: run,
+              visualResults: visualResults,
+          });
+      }
+    </script>
+  </body>
+</html>

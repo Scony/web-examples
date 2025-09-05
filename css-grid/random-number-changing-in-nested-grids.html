@@ -1,0 +1,129 @@
+<html>
+  <head>
+    <script src="../common/benchmarking.js"></script>
+    <style>
+      .grid {
+          display: grid;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      const grids = parseInt((new URL(window.location.href)).searchParams.get("gs") || 1);
+      const raf = parseInt((new URL(window.location.href)).searchParams.get("raf") || 0) > 0;
+      const maxNumber = parseInt((new URL(window.location.href)).searchParams.get("mx") || 99999999);
+      const visualResults = parseInt((new URL(window.location.href)).searchParams.get("vr") || 0) > 0;
+      const size = (new URL(window.location.href)).searchParams.get("s");
+      const containmentLevel = parseInt((new URL(window.location.href)).searchParams.get("cl") || 0);
+
+      function createNewElement(elementName, lambda = (el) => {}) {
+          var newElement = document.createElement(elementName);
+          lambda(newElement);
+          return newElement;
+      }
+
+      function getRandomColor() {
+          var letters = '0123456789ABCDEF';
+          var color = '#';
+          for (var i = 0; i < 6; i++) {
+              color += letters[Math.floor(Math.random() * 16)];
+          }
+          return color;
+      }
+
+      if (grids > 0) {
+          let parent = document.body;
+          let nextParent;
+          for (let i = 0; i < grids; ++i) {
+              const maxGrids = 6;
+              const lastGrid = i + 1 == grids || i == maxGrids - 1;
+              if (i > maxGrids - 1) {
+                  break;
+              }
+              let cellSize = 729;
+              for (let j = 0; j <= i; ++j) {
+                  cellSize = Math.round(cellSize / 3);
+              }
+              let grid = createNewElement("div", (el) => {
+                  el.className = "grid";
+                  el.style.backgroundColor = getRandomColor();
+                  if (size == 'fr') {
+                      el.style.gridTemplateColumns = '1fr 1fr 1fr';
+                      el.style.gridTemplateRows = '1fr 1fr 1fr';
+                  } else if (size == 'auto') {
+                      el.style.gridTemplateColumns = 'auto auto auto';
+                      el.style.gridTemplateRows = 'auto auto auto';
+                  } else { // px
+                      el.style.gridTemplateColumns = cellSize + 'px ' + cellSize + 'px ' + cellSize + 'px';
+                      el.style.gridTemplateRows = cellSize + 'px ' + cellSize + 'px ' + cellSize + 'px';
+                  }
+              });
+              for (let j = 0; j < 9; ++j) {
+                  let cell;
+                  if (j == 4) {
+                      if (lastGrid) {
+                          cell = createNewElement("span", (el) => {
+                              el.innerText = j;
+                              el.id = 'textHolder';
+                          });
+                      } else {
+                          cell = createNewElement("span");
+                          nextParent = cell;
+                      }
+                  } else {
+                      cell = createNewElement("span", (el) => el.innerText = j);
+                  }
+                  grid.appendChild(cell);
+              }
+              parent.appendChild(grid);
+              parent = nextParent;
+          }
+
+          if (containmentLevel > 0) {
+              Benchmarking.forceLayout();
+              let grid = document.body.children[1];
+              for (let i = 1; i <= grids; ++i) {
+                  if (containmentLevel == i) {
+                      grid.style.width = getComputedStyle(grid).width;
+                      grid.style.height = getComputedStyle(grid).height;
+                      grid.style.contain = 'strict';
+                      break;
+                  }
+                  grid = grid.children.length >= 5 ? grid.children[4].children[0] : null;
+              }
+          }
+      }
+
+      const textParent = document.getElementById("textHolder");
+
+      function getRandomIntInclusive(min, max) {
+          const minCeiled = Math.ceil(min);
+          const maxFloored = Math.floor(max);
+          return Math.floor(Math.random() * (maxFloored - minCeiled + 1) + minCeiled);
+      }
+
+      const layoutSubject = containmentLevel > 0 ? textParent : document.body;
+      function run() {
+          textParent.innerText = getRandomIntInclusive(0, maxNumber);
+          layoutSubject.offsetWidth; // Force layout.
+      }
+
+      if (textParent) {
+          if (raf) {
+              Benchmarking.forceLayout();
+              Benchmarking.enableFPSLogging();
+              requestAnimationFrame(function render() {
+                  run();
+                  requestAnimationFrame(render);
+              });
+          } else {
+              Benchmarking.forceLayout();
+              Benchmarking.measureRunsPerSecond({
+                  benchmarkFunction: run,
+                  visualResults: visualResults,
+              });
+          }
+      }
+    </script>
+  </body>
+</html>
