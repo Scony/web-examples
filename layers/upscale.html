@@ -1,0 +1,42 @@
+<html>
+  <head>
+    <style>
+      .smallSquare {
+          width: 2px;
+          height: 2px;
+      }
+      .redHalf {
+          height: 50%;
+          background: red;
+      }
+      .greenHalf {
+          height: 50%;
+          background: green;
+      }
+      .padding {
+          height: 200px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="smallSquare">
+      <div class="redHalf"></div>
+      <div class="greenHalf"></div>
+    </div>
+    <div class="padding"></div>
+    <div class="smallSquare" style="transform: scale(100); transform-origin: 0 0;">
+      <div class="redHalf"></div>
+      <div class="greenHalf"></div>
+    </div>
+    <div class="padding"></div>
+    <div class="smallSquare" style="will-change: transform; transform: scale(100); transform-origin: 0 0;">
+      <div class="redHalf"></div>
+      <div class="greenHalf"></div>
+    </div>
+    <div class="padding"></div>
+    <div class="smallSquare" style="image-rendering: smooth; will-change: transform; transform: scale(100); transform-origin: 0 0;">
+      <div class="redHalf"></div>
+      <div class="greenHalf"></div>
+    </div>
+  </body>
+</html>
