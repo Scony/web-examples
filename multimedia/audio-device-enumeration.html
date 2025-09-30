@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Audio device enumeration</title>
+  </head>
+  <body>
+    <fieldset id="outputs">
+    </fieldset>
+  </body>
+  <pre id="log" style="padding: 0.25em; border: 1px solid #888; background: #eee; white-space: pre-wrap;"></pre>
+  <script type="text/javascript">
+    const logElement = document.querySelector("pre#log");
+    const audioElement = document.querySelector("audio#song");
+    const outputsElement = document.querySelector("fieldset#outputs");
+
+    function logDebug(msg, obj) {
+	if (obj !== undefined) {
+	    console.log(msg, obj);
+	    msg += ", ";
+	    if ("toString" in obj) {
+		msg += obj.toString();
+	    } else {
+		msg += JSON.stringify(obj);
+	    }
+	} else {
+	    console.log(msg);
+	}
+	logElement.innerText += (new Date).toISOString();
+	logElement.innerText += " - ";
+	logElement.innerText += msg;
+	logElement.innerText += "\n";
+    }
+
+    function getDevices() {
+	logDebug("Audio device enumeration started...");
+	navigator.mediaDevices.enumerateDevices()
+	    .then(devices => {
+		while (outputsElement.firstChild)
+		    outputsElement.removeChild(outputsElement.lastChild);
+
+		const legend = document.createElement('legend');
+		legend.innerText = "Audio output:";
+		outputsElement.appendChild(legend);
+
+		let countAudio = 0;
+		for (let i = 0; i !== devices.length; i++) {
+		    const deviceInfo = devices[i];
+		    if (deviceInfo.kind !== "audiooutput") {
+			logDebug(`Device "${deviceInfo.deviceId}" skipped, type is "${deviceInfo.kind}"`);
+			continue;
+		    }
+
+		    const checkbox = document.createElement('input')
+		    checkbox.id = "radio-" + deviceInfo.deviceId;
+		    checkbox.type = "radio";
+		    checkbox.name = "audio-output";
+		    checkbox.value = deviceInfo.deviceId;
+
+		    if (countAudio++ == 0)
+			checkbox.checked = true;
+
+		    const label = document.createElement('label');
+		    label.htmlFor = "radio-" + deviceInfo.deviceId;
+		    label.innerText = deviceInfo.label || `speaker ${i + 1}`;
+
+		    const item = document.createElement('div');
+		    item.appendChild(checkbox);
+		    item.appendChild(label);
+
+		    outputsElement.appendChild(item);
+
+		    logDebug(`Device "${deviceInfo.deviceId}" added: "${label.innerText}"`);
+		}
+	    })
+	    .catch(error => {
+		logDebug("Cannot enumerate devices:", error);
+	    });
+    }
+
+    logDebug(navigator.mediaDevices);
+    navigator.mediaDevices.getUserMedia({ audio: true })
+    .then(stream => {
+	logDebug("getUserMedia success, fetching devices, stream:", stream);
+	getDevices();
+	stream.getTracks().forEach(track => {
+	    logDebug(`stopping ${track.kind} track "${track.id}" (${track.label})`);
+	    track.stop();
+	});
+    }).catch(error => {
+	logDebug("getUserMedia failed:", error);
+    });
+  </script>
+</html>
