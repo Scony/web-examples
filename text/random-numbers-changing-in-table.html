@@ -11,6 +11,7 @@
           height: 30px;
       }
     </style>
+    <script src="../common/benchmarking.js"></script>
   </head>
   <body>
     <script>
@@ -18,6 +19,7 @@
       var rows = parseInt((new URL(window.location.href)).searchParams.get("rs") || 1);
       var intervalMs = parseInt((new URL(window.location.href)).searchParams.get("i") || 1000);
       var raf = parseInt((new URL(window.location.href)).searchParams.get("raf") || 0) > 0;
+      var fps = parseInt((new URL(window.location.href)).searchParams.get("fps") || 0) > 0;
       var maxNumber = parseInt((new URL(window.location.href)).searchParams.get("mx") || 99)
 
       function createNewElementWithClass(elementName, className, lambda = (el) => {}) {
@@ -55,6 +57,10 @@
           }
       }
       renderNumbers();
+
+      if (fps) {
+          Benchmarking.enableFPSLogging();
+      }
 
       if (raf) {
           requestAnimationFrame(function render() {
