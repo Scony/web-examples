@@ -1,0 +1,31 @@
+<html>
+  <head>
+    <style>
+      body {
+          font-size: 40px;
+      }
+      button {
+          font-size: 40px;
+      }
+    </style>
+  </head>
+  <body>
+    <p id="p1">0</p>
+    <p id="p2">0</p>
+    <div><button>Dummy</button></div>
+    <script>
+      const p1 = document.getElementById("p1");
+      const p2 = document.getElementById("p2");
+
+      requestAnimationFrame(function loop() {
+          p1.textContent = parseInt(p1.textContent) + 1;
+          requestAnimationFrame(loop);
+      });
+      setInterval(() => p2.textContent = parseInt(p2.textContent) + 1, 1000);
+      setInterval(() => {
+          console.log("calling window.alert()...");
+          window.alert("Alert!");
+      }, 5000);
+    </script>
+  </body>
+</html>
