@@ -14,8 +14,16 @@
     <p id="p2">0</p>
     <div><button>Dummy</button></div>
     <script>
+      const intervalMs = parseInt((new URL(window.location.href)).searchParams.get("ims") || 5000);
+      const audioContext = parseInt((new URL(window.location.href)).searchParams.get("ac") || 0) > 0;
+
       const p1 = document.getElementById("p1");
       const p2 = document.getElementById("p2");
+
+      if (audioContext) {
+          console.log("calling 'new AudioContext()'...");
+          new AudioContext();
+      }
 
       requestAnimationFrame(function loop() {
           p1.textContent = parseInt(p1.textContent) + 1;
@@ -25,7 +33,7 @@
       setInterval(() => {
           console.log("calling window.alert()...");
           window.alert("Alert!");
-      }, 5000);
+      }, intervalMs);
     </script>
   </body>
 </html>
