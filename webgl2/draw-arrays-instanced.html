@@ -1,0 +1,137 @@
+<html>
+  <body>
+    <script>
+      var canvas = document.createElement("canvas");
+      canvas.width = 600;
+      canvas.height = 600;
+      canvas.style.border = '1px solid #000';
+      document.body.appendChild(canvas);
+
+      const gl = canvas.getContext("webgl2");
+      if (!gl) {
+          alert("WebGL2 not supported in this browser");
+          throw new Error("WebGL2 not supported");
+      }
+
+      // --- Vertex Shader ---
+      const vsSource = `#version 300 es
+layout(location=0) in vec2 a_position;
+layout(location=1) in vec2 a_offset;
+layout(location=2) in vec3 a_color;
+
+out vec3 v_color;
+
+void main() {
+  vec2 pos = a_position * 0.05 + a_offset; // scale & translate
+  gl_Position = vec4(pos, 0.0, 1.0);
+  v_color = a_color;
+}`;
+
+      // --- Fragment Shader ---
+      const fsSource = `#version 300 es
+precision mediump float;
+in vec3 v_color;
+out vec4 outColor;
+void main() {
+  outColor = vec4(v_color, 1.0);
+}`;
+
+      // --- Compile Shaders ---
+      function compileShader(type, src) {
+          const s = gl.createShader(type);
+          gl.shaderSource(s, src);
+          gl.compileShader(s);
+          if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+              console.error(gl.getShaderInfoLog(s));
+              throw new Error("Shader compile error");
+          }
+          return s;
+      }
+
+      const vs = compileShader(gl.VERTEX_SHADER, vsSource);
+      const fs = compileShader(gl.FRAGMENT_SHADER, fsSource);
+
+      // --- Create Program ---
+      const program = gl.createProgram();
+      gl.attachShader(program, vs);
+      gl.attachShader(program, fs);
+      gl.linkProgram(program);
+      if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+          console.error(gl.getProgramInfoLog(program));
+          throw new Error("Program link error");
+      }
+      gl.useProgram(program);
+
+      // --- Geometry (square) ---
+      const squareVertices = new Float32Array([
+          -1, -1,
+          1, -1,
+          -1,  1,
+          -1,  1,
+          1, -1,
+          1,  1
+      ]);
+      const vertexBuffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, squareVertices, gl.STATIC_DRAW);
+      gl.enableVertexAttribArray(0);
+      gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+
+      // --- Instance Offsets ---
+      const instanceCount = 200;
+      const offsets = new Float32Array(instanceCount * 2);
+      for (let i = 0; i < instanceCount; ++i) {
+          offsets[i*2 + 0] = (Math.random() * 2.0 - 1.0); // x
+          offsets[i*2 + 1] = (Math.random() * 2.0 - 1.0); // y
+      }
+      const offsetBuffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, offsetBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, offsets, gl.STATIC_DRAW);
+      gl.enableVertexAttribArray(1);
+      gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 0, 0);
+      gl.vertexAttribDivisor(1, 1); // advance per instance
+
+      // --- Instance Colors ---
+      const colors = new Float32Array(instanceCount * 3);
+      for (let i = 0; i < instanceCount; ++i) {
+          colors[i*3 + 0] = Math.random();
+          colors[i*3 + 1] = Math.random();
+          colors[i*3 + 2] = Math.random();
+      }
+      const colorBuffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
+      gl.enableVertexAttribArray(2);
+      gl.vertexAttribPointer(2, 3, gl.FLOAT, false, 0, 0);
+      gl.vertexAttribDivisor(2, 1);
+
+      // --- Render Loop ---
+      gl.clearColor(0.9, 0.9, 0.9, 1.0);
+
+      let clamp = (min, max, value) => {
+          return Math.min(Math.max(value, min), max);
+      };
+      var frameNumber = 0;
+      function render(time) {
+          gl.clear(gl.COLOR_BUFFER_BIT);
+          gl.useProgram(program);
+          gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, instanceCount);
+
+          // --- Runtime offset updates ---
+          frameNumber++;
+          for (let i = 0; i < instanceCount; ++i) {
+              offsets[i*2 + 0] = clamp(-1.0, 1.0, offsets[i*2 + 0] + (
+                  (frameNumber % 100) >= 50
+                      ? ((frameNumber % 100) % 50) * 0.0001
+                      : ((frameNumber % 100) % 50) * -0.0001
+              )); // x
+          }
+          gl.bindBuffer(gl.ARRAY_BUFFER, offsetBuffer);
+          gl.bufferData(gl.ARRAY_BUFFER, offsets, gl.STATIC_DRAW);
+
+          requestAnimationFrame(render);
+      }
+      requestAnimationFrame(render);
+    </script>
+  </body>
+</html>
