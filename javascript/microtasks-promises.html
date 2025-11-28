@@ -1,0 +1,74 @@
+<html>
+  <head>
+    <style>
+      body {
+          margin: 0px;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      const longTaskIterations = parseInt((new URL(window.location.href)).searchParams.get("i") || 1000000000);
+
+      var canvas = document.createElement("canvas");
+      canvas.width = 100;
+      canvas.height = 100;
+      canvas.style.border = "1px solid #000";
+      document.body.appendChild(canvas);
+
+      var ctx = canvas.getContext("2d");
+      ctx.fillStyle = "yellow";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      var frameNumber = 1;
+      requestAnimationFrame(function render() {
+          if (frameNumber < 200)
+              console.log("rAF callback");
+          ctx.fillStyle = "yellow";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.fillStyle = "red";
+          ctx.fillRect(frameNumber % 91, frameNumber % 91, 10, 10);
+          frameNumber++;
+          requestAnimationFrame(render);
+      });
+
+      var tasksScheduled = 0;
+      async function trivialTask() {
+          tasksScheduled++;
+          console.log("trivial task scheduled");
+          await new Promise((resolve) => setTimeout(resolve, 500));
+          console.log("trivial task actually started");
+          console.log("trivial task done");
+          if (--tasksScheduled == 0)
+              trySchedulingNextBatch();
+      }
+      async function computationalTask(iterations) {
+          tasksScheduled++;
+          console.log(`computational task (iterations: ${iterations}) scheduled`);
+          await new Promise((resolve) => setTimeout(resolve, 500));
+          let ret = 0.0;
+          console.log(`computational task (iterations: ${iterations}) actually started`);
+          for (let i = 0; i < iterations; ++i)
+              ret += i * Math.random();
+          console.log(`computational task finished, ret: ${ret}`);
+          if (--tasksScheduled == 0)
+              trySchedulingNextBatch();
+      }
+
+      const batchesLimit = 3;
+      var batchesScheduled = 0;
+      function trySchedulingNextBatch() {
+          if (batchesScheduled >= batchesLimit)
+              return;
+          setTimeout(() => {
+              trivialTask();
+              computationalTask(1000);
+              computationalTask(longTaskIterations);
+              batchesScheduled++;
+              console.log("next batch scheduled");
+          }, 500);
+      }
+      trySchedulingNextBatch();
+    </script>
+  </body>
+</html>

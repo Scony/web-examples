@@ -1,0 +1,63 @@
+<html>
+  <head>
+    <style>
+      body {
+          margin: 0px;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      const longTaskIterations = parseInt((new URL(window.location.href)).searchParams.get("i") || 1000000000);
+
+      var canvas = document.createElement("canvas");
+      canvas.width = 100;
+      canvas.height = 100;
+      canvas.style.border = "1px solid #000";
+      document.body.appendChild(canvas);
+
+      var ctx = canvas.getContext("2d");
+      ctx.fillStyle = "yellow";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      var frameNumber = 1;
+      requestAnimationFrame(function render() {
+          if (frameNumber < 200)
+              console.log("rAF callback");
+          ctx.fillStyle = "yellow";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.fillStyle = "red";
+          ctx.fillRect(frameNumber % 91, frameNumber % 91, 10, 10);
+          frameNumber++;
+          requestAnimationFrame(render);
+      });
+
+      function trivialTask() {
+          console.log("trivial task done");
+      }
+      function computationalTask(iterations) {
+          let ret = 0.0;
+          console.log(`computational task (iterations: ${iterations}) started`);
+          for (let i = 0; i < iterations; ++i)
+              ret += i * Math.random();
+          console.log(`computational task finished, ret: ${ret}`);
+      }
+
+      const batchesLimit = 3;
+      var batchesScheduled = 0;
+      function trySchedulingNextBatch() {
+          if (batchesScheduled >= batchesLimit)
+              return;
+          setTimeout(() => {
+              queueMicrotask(trivialTask);
+              queueMicrotask(() => computationalTask(1000));
+              queueMicrotask(() => computationalTask(longTaskIterations));
+              queueMicrotask(trySchedulingNextBatch);
+              batchesScheduled++;
+              console.log("next batch scheduled");
+          }, 500);
+      }
+      trySchedulingNextBatch();
+    </script>
+  </body>
+</html>

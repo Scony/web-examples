@@ -1,0 +1,57 @@
+<html>
+  <head>
+    <style>
+      body {
+          margin: 0px;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      const computationalTaskIterations = parseInt((new URL(window.location.href)).searchParams.get("i") || 1000000000);
+      var canvas = document.createElement("canvas");
+      canvas.width = 100;
+      canvas.height = 100;
+      canvas.style.border = "1px solid #000";
+      document.body.appendChild(canvas);
+
+      var ctx = canvas.getContext("2d");
+      ctx.fillStyle = "yellow";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      var frameNumber = 1;
+      requestAnimationFrame(function render() {
+          if (frameNumber < 60)
+              console.log("rAF callback");
+          ctx.fillStyle = "yellow";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.fillStyle = "red";
+          ctx.fillRect(frameNumber % 91, frameNumber % 91, 10, 10);
+          frameNumber++;
+          requestAnimationFrame(render);
+      });
+
+      const messageChannel = new MessageChannel();
+      function computationalTask(id, iterations) {
+          let ret = 0.0;
+          console.log(`computational task#${id} (iterations: ${iterations}) started`);
+          for (let i = 0; i < iterations; ++i)
+              ret += i * Math.random();
+          console.log(`computational task finished, ret: ${ret}`);
+      }
+      function microtask() {
+          console.log("microtask executing");
+          queueMicrotask(() => computationalTask(1, computationalTaskIterations));
+          setTimeout(() => computationalTask(2, computationalTaskIterations), 0);
+          messageChannel.port1.onmessage = () => computationalTask(3, computationalTaskIterations);
+          messageChannel.port2.postMessage("");
+          requestIdleCallback(() => computationalTask(4, computationalTaskIterations));
+      }
+
+      setTimeout(() => {
+          console.log("queuing microtask...");
+          queueMicrotask(microtask);
+      }, 500);
+    </script>
+  </body>
+</html>
