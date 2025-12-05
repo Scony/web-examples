@@ -1,0 +1,49 @@
+<html>
+  <head>
+    <style>
+      body {
+          font-size: 40px;
+      }
+    </style>
+  </head>
+  <body>
+    <p id="p1">0</p>
+    <script>
+      const intervalMs = parseInt((new URL(window.location.href)).searchParams.get("ims") || 16);
+      const raf = parseInt((new URL(window.location.href)).searchParams.get("raf") || 0) > 0;
+      const bytesToAllocate = parseInt((new URL(window.location.href)).searchParams.get("bta") || 1024*1024);
+      const bufferPoolSize = parseInt((new URL(window.location.href)).searchParams.get("bps") || 16);
+
+      function randomInt(min, max) {
+          return Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+
+      const p1 = document.getElementById("p1");
+      var buffers = [];
+
+      function iterate() {
+          // Update counter.
+          p1.firstChild.nodeValue = parseInt(p1.firstChild.nodeValue) + 1;
+
+          // Allocate.
+          let buffer = new ArrayBuffer(bytesToAllocate);
+          const view = new Uint8Array(buffer);
+          for (let i = 0; i < view.length; i++) {
+              view[i] = i == 0 ? randomInt(0, 255) : (view[i - 1] + randomInt(0, 255)) % 256;
+          }
+          if (buffers.length >= bufferPoolSize)
+              buffers = [];
+          buffers.push(buffer);
+      }
+
+      if (!raf)
+          setInterval(iterate, intervalMs);
+      else {
+          requestAnimationFrame(function loop() {
+              iterate();
+              requestAnimationFrame(loop);
+          });
+      }
+    </script>
+  </body>
+</html>

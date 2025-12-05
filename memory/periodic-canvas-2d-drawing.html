@@ -1,0 +1,39 @@
+<html>
+  <body>
+    <script>
+      const intervalMs = parseInt((new URL(window.location.href)).searchParams.get("ims") || 16);
+      const canvasWidth = parseInt((new URL(window.location.href)).searchParams.get("cw") || 100);
+      const canvasHeight = parseInt((new URL(window.location.href)).searchParams.get("ch") || 100);
+      const raf = parseInt((new URL(window.location.href)).searchParams.get("raf") || 0) > 0;
+
+      var canvas = document.createElement("canvas");
+      canvas.width = canvasWidth;
+      canvas.height = canvasHeight;
+      canvas.style.border = "1px solid #000";
+      document.body.appendChild(canvas);
+
+      var ctx = canvas.getContext("2d");
+      ctx.fillStyle = "yellow";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      var frameNumber = 1;
+      function render() {
+          ctx.fillStyle = "yellow";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.fillStyle = "red";
+          ctx.fillRect(frameNumber % (canvas.width - 9), frameNumber % (canvas.height - 9), 10, 10);
+          frameNumber++;
+          requestAnimationFrame(render);
+      }
+
+      if (!raf)
+          setInterval(iterate, intervalMs);
+      else {
+          requestAnimationFrame(function loop() {
+              render();
+              requestAnimationFrame(loop);
+          });
+      }
+    </script>
+  </body>
+</html>
