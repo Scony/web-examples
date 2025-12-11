@@ -1,0 +1,118 @@
+<html>
+  <head>
+    <script src="../common/benchmarking.js"></script>
+    <script id='myWorker' type='text/worker'>
+      function getRandomString(length) {
+          let result = "";
+          const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+          for (let i = 0; i < length; i++) {
+              result += chars[Math.floor(Math.random() * chars.length)];
+          }
+          return result;
+      }
+
+      let messagesSent = 0;
+
+      self.onmessage = async (message) => {
+          const port = message.data.port;
+          const messageSize = message.data.messageSize;
+          setInterval(() => {
+              port.postMessage(getRandomString(messageSize));
+              messagesSent++;
+          }, 17);
+          setInterval(() => {
+              console.log(`Worker: ${messagesSent} messages sent so far`);
+          }, 1000);
+      };
+    </script>
+  </head>
+  <body>
+    <script>
+      const intervalMs = parseInt((new URL(window.location.href)).searchParams.get("ims") || 16);
+      const raf = parseInt((new URL(window.location.href)).searchParams.get("raf") || 1) > 0;
+      const lowLoadCurvesPerFrame = parseInt((new URL(window.location.href)).searchParams.get("llcpf") || 1);
+      const messageSize = parseInt((new URL(window.location.href)).searchParams.get("ms") || 1024 * 1024);
+      const computationalTaskIterations = parseInt((new URL(window.location.href)).searchParams.get("cti") || 1000);
+
+      const canvas = document.createElement("canvas");
+      canvas.width = window.innerWidth -  20;
+      canvas.height = window.innerHeight - 20;
+      canvas.style.border = "1px solid #000";
+      document.body.appendChild(canvas);
+
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "gray";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      function getRandomIntInclusive(min, max) {
+          const minCeiled = Math.ceil(min);
+          const maxFloored = Math.floor(max);
+          return Math.floor(Math.random() * (maxFloored - minCeiled + 1) + minCeiled);
+      }
+
+      function getRandomX() {
+          return getRandomIntInclusive(0, canvas.width);
+      }
+
+      function getRandomY() {
+          return getRandomIntInclusive(0, canvas.height);
+      }
+
+      function drawRandomCurve() {
+          ctx.strokeStyle = `rgb(${getRandomIntInclusive(0, 255)}, ${getRandomIntInclusive(0, 255)}, ${getRandomIntInclusive(0, 255)})`;
+          ctx.lineWidth = getRandomIntInclusive(1, 10);
+          ctx.beginPath();
+          ctx.moveTo(getRandomX(), getRandomY());
+          ctx.bezierCurveTo(
+              getRandomX(), getRandomY(),
+              getRandomX(), getRandomY(),
+              getRandomX(), getRandomY()
+          );
+          ctx.stroke();
+      }
+      function drawRandomCurves(curves) {
+          for (let i = 0; i < curves; i++)
+              drawRandomCurve();
+      }
+      function renderFrame() {
+          drawRandomCurves(lowLoadCurvesPerFrame);
+      }
+
+      Benchmarking.enableFPSLogging();
+      if (raf) {
+          requestAnimationFrame(function render() {
+              renderFrame();
+              requestAnimationFrame(render);
+          });
+      } else {
+          setInterval(() => {
+              renderFrame();
+          }, intervalMs);
+      }
+
+      const messageChannel = new MessageChannel();
+      const blob = new Blob([document.getElementById('myWorker').textContent]);
+      const worker = new Worker(URL.createObjectURL(blob));
+
+      function computationalTask(iterations) {
+          let ret = 0.0;
+          console.log(`computational task (iterations: ${iterations}) started`);
+          for (let i = 0; i < iterations; ++i)
+              ret += i * Math.random();
+          console.log(`computational task finished, ret: ${ret}`);
+      }
+
+      let messagesReceived = 0;
+      messageChannel.port1.onmessage = () => {
+          computationalTask(computationalTaskIterations);
+          messagesReceived++;
+      };
+      worker.postMessage({ port: messageChannel.port2, messageSize: messageSize }, [messageChannel.port2]);
+
+      setInterval(() => {
+          console.log(`Main: ${messagesReceived} messages received so far`);
+      }, 1000);
+    </script>
+  </body>
+</html>

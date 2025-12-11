@@ -1,0 +1,110 @@
+<html>
+  <head>
+    <script src="../common/benchmarking.js"></script>
+    <script id='myWorker' type='text/worker'>
+      function getRandomString(length) {
+          let result = "";
+          const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+          for (let i = 0; i < length; i++) {
+              result += chars[Math.floor(Math.random() * chars.length)];
+          }
+          return result;
+      }
+
+      self.onmessage = async (message) => {
+          const port = message.data.port;
+          const messageSize = message.data.messageSize;
+          setInterval(() => {
+              port.postMessage(getRandomString(messageSize));
+          }, 17);
+      };
+    </script>
+  </head>
+  <body>
+    <script>
+      const intervalMs = parseInt((new URL(window.location.href)).searchParams.get("ims") || 16);
+      const raf = parseInt((new URL(window.location.href)).searchParams.get("raf") || 1) > 0;
+      const lowLoadCurvesPerFrame = parseInt((new URL(window.location.href)).searchParams.get("llcpf") || 1);
+      const heavyLoadCurvesPerFrame = parseInt((new URL(window.location.href)).searchParams.get("hlcpf") || 100);
+      const heavyLoadDelayMs = parseInt((new URL(window.location.href)).searchParams.get("hldms") || 5000);
+      const messageSize = parseInt((new URL(window.location.href)).searchParams.get("ms") || 1024 * 1024);
+
+      const canvas = document.createElement("canvas");
+      canvas.width = window.innerWidth -  20;
+      canvas.height = window.innerHeight - 20;
+      canvas.style.border = "1px solid #000";
+      document.body.appendChild(canvas);
+
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "yellow";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      function getRandomIntInclusive(min, max) {
+          const minCeiled = Math.ceil(min);
+          const maxFloored = Math.floor(max);
+          return Math.floor(Math.random() * (maxFloored - minCeiled + 1) + minCeiled);
+      }
+
+      function getRandomX() {
+          return getRandomIntInclusive(0, canvas.width);
+      }
+
+      function getRandomY() {
+          return getRandomIntInclusive(0, canvas.height);
+      }
+
+      function drawRandomCurve() {
+          ctx.strokeStyle = `rgb(${getRandomIntInclusive(0, 255)}, ${getRandomIntInclusive(0, 255)}, ${getRandomIntInclusive(0, 255)})`;
+          ctx.lineWidth = getRandomIntInclusive(1, 10);
+          ctx.beginPath();
+          ctx.moveTo(getRandomX(), getRandomY());
+          ctx.bezierCurveTo(
+              getRandomX(), getRandomY(),
+              getRandomX(), getRandomY(),
+              getRandomX(), getRandomY()
+          );
+          ctx.stroke();
+      }
+      function drawRandomCurves(curves) {
+          for (let i = 0; i < curves; ++i)
+              drawRandomCurve();
+      }
+      let underHeavyLoad = false;
+      let frameNumber = 0;
+      let messagesReceived = 0;
+      let lastMessagesReceived = 0;
+      function renderFrame() {
+          if (++frameNumber % 60 == 0) {
+              const delta = messagesReceived - lastMessagesReceived;
+              console.log(`Frame #${frameNumber}: messages received since last report: ${delta}`);
+              lastMessagesReceived = messagesReceived;
+          }
+          if (underHeavyLoad)
+              drawRandomCurves(heavyLoadCurvesPerFrame);
+          else
+              drawRandomCurves(lowLoadCurvesPerFrame);
+      }
+
+      Benchmarking.enableFPSLogging();
+      if (raf) {
+          requestAnimationFrame(function render() {
+              renderFrame();
+              requestAnimationFrame(render);
+          });
+      } else {
+          setInterval(() => {
+              renderFrame();
+          }, intervalMs);
+      }
+
+      setTimeout(() => { underHeavyLoad = true; }, heavyLoadDelayMs);
+
+      const messageChannel = new MessageChannel();
+      messageChannel.port1.onmessage = () => { ++messagesReceived; };
+      const blob = new Blob([document.getElementById('myWorker').textContent]);
+      const worker = new Worker(URL.createObjectURL(blob));
+      worker.postMessage({ port: messageChannel.port2, messageSize: messageSize }, [messageChannel.port2]);
+    </script>
+  </body>
+</html>
