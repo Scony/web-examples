@@ -1,0 +1,87 @@
+<html>
+  <head>
+    <script src="../common/benchmarking.js"></script>
+    <script id='myWorker' type='text/worker'>
+      self.onmessage = async (message) => {
+          console.log(`Creating WebSocket(${message.data.webSocketUrl}) in a worker...`);
+          const socket = new WebSocket(message.data.webSocketUrl);
+          socket.onopen = () => console.log(`WebSocket connection opened`);
+          socket.onerror = () => console.log(`WebSocket connection errored`);
+          socket.onclose = () => console.log(`WebSocket connection closed`);
+          setTimeout(() => {
+              socket.addEventListener("message", (event) => {
+                  console.log("Message from server: '" + event.data.slice(0, 10) + "(...)'");
+              });
+          }, message.data.receiverDelayMs);
+      };
+    </script>
+  </head>
+  <body>
+    <script>
+      const raf = parseInt((new URL(window.location.href)).searchParams.get("raf") || 1) > 0;
+      const curvesPerFrame = parseInt((new URL(window.location.href)).searchParams.get("cpf") || 1);
+      const webSocketUrl = (new URL(window.location.href)).searchParams.get("ws") || "ws://localhost:31337";
+      const receiverDelayMs = parseInt((new URL(window.location.href)).searchParams.get("rdms") || 5000);
+
+      const canvas = document.createElement("canvas");
+      canvas.width = window.innerWidth -  20;
+      canvas.height = window.innerHeight - 20;
+      canvas.style.border = "1px solid #000";
+      document.body.appendChild(canvas);
+
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "gray";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      function getRandomIntInclusive(min, max) {
+          const minCeiled = Math.ceil(min);
+          const maxFloored = Math.floor(max);
+          return Math.floor(Math.random() * (maxFloored - minCeiled + 1) + minCeiled);
+      }
+
+      function getRandomX() {
+          return getRandomIntInclusive(0, canvas.width);
+      }
+
+      function getRandomY() {
+          return getRandomIntInclusive(0, canvas.height);
+      }
+
+      function drawRandomCurve() {
+          ctx.strokeStyle = `rgb(${getRandomIntInclusive(0, 255)}, ${getRandomIntInclusive(0, 255)}, ${getRandomIntInclusive(0, 255)})`;
+          ctx.lineWidth = getRandomIntInclusive(1, 10);
+          ctx.beginPath();
+          ctx.moveTo(getRandomX(), getRandomY());
+          ctx.bezierCurveTo(
+              getRandomX(), getRandomY(),
+              getRandomX(), getRandomY(),
+              getRandomX(), getRandomY()
+          );
+          ctx.stroke();
+      }
+      function drawRandomCurves(curves) {
+          for (let i = 0; i < curves; i++)
+              drawRandomCurve();
+      }
+      function renderFrame() {
+          drawRandomCurves(curvesPerFrame);
+      }
+
+      Benchmarking.enableFPSLogging();
+      if (raf) {
+          requestAnimationFrame(function render() {
+              renderFrame();
+              requestAnimationFrame(render);
+          });
+      } else {
+          setInterval(() => {
+              renderFrame();
+          }, intervalMs);
+      }
+
+      const blob = new Blob([document.getElementById('myWorker').textContent]);
+      const worker = new Worker(URL.createObjectURL(blob));
+      worker.postMessage({webSocketUrl: webSocketUrl, receiverDelayMs: receiverDelayMs});
+    </script>
+  </body>
+</html>

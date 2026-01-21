@@ -1,0 +1,27 @@
+import asyncio
+import datetime
+import websockets
+
+HOST = "0.0.0.0"
+PORT = 31337
+INTERVAL = 0.1
+
+async def handler(websocket):
+    print("Client connected")
+    try:
+        sequence_number = 0
+        while True:
+            message = f"{sequence_number:010}" + (1024 * 1024 - 10) * "X"
+            await websocket.send(message)
+            print(f'Message {sequence_number} sent') 
+            sequence_number += 1
+            await asyncio.sleep(INTERVAL)
+    except websockets.exceptions.ConnectionClosed:
+        print("Client disconnected")
+
+async def main():
+    async with websockets.serve(handler, HOST, PORT):
+        print(f"WebSocket server running on ws://{HOST}:{PORT}")
+        await asyncio.Future()
+
+asyncio.run(main())
