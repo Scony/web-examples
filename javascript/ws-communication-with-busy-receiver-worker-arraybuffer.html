@@ -33,6 +33,7 @@
   <body>
     <script>
       const raf = parseInt((new URL(window.location.href)).searchParams.get("raf") || 1) > 0;
+      const intervalMs = parseInt((new URL(window.location.href)).searchParams.get("ims") || 16);
       const curvesPerFrame = parseInt((new URL(window.location.href)).searchParams.get("cpf") || 1);
       const webSocketUrl = (new URL(window.location.href)).searchParams.get("ws") || "ws://localhost:31337";
       const busyLoopDurationMs = parseInt((new URL(window.location.href)).searchParams.get("bldms") || 2000);
