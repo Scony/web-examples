@@ -1,0 +1,57 @@
+<html>
+  <head>
+    <script src="../common/benchmarking.js"></script>
+    <style>
+      div {
+          position: fixed;
+          background-color: black;
+      }
+      </style>
+  </head>
+  <body>
+    <script>
+      const rectSize = parseInt((new URL(window.location.href)).searchParams.get("rs") || 10);
+      const density = parseFloat((new URL(window.location.href)).searchParams.get("d") || 1);
+      const changeIntervalMs = parseInt((new URL(window.location.href)).searchParams.get("cims") || 1000);
+
+      const viewportWidth = document.documentElement.clientWidth;
+      const viewportHeight = document.documentElement.clientHeight;
+
+      function createNewElement(elementName, lambda = (el) => {}) {
+          var newElement = document.createElement(elementName);
+          lambda(newElement);
+          return newElement;
+      }
+
+      function spawnNewElement(elementName, lambda = (el) => {}) {
+          var newElement = createNewElement(elementName, lambda);
+          document.body.appendChild(newElement);
+          return newElement;
+      }
+
+      const cols = Math.floor(viewportWidth / rectSize);
+      const rows = Math.floor(viewportWidth / rectSize);
+      let offset = 0;
+      for (let row = 0; row < rows; row++) {
+          for (let col = 0; col < cols; col += 2) {
+              if (Benchmarking.random() > density)
+                  continue;
+              let left = col * rectSize + offset;
+              let top = row * rectSize;
+              spawnNewElement("div", (el) => {
+                  el.style.width = `${rectSize}px`;
+                  el.style.height = `${rectSize}px`;
+                  el.style.left = `${left}px`;
+                  el.style.top = `${top}px`;
+              });
+          }
+          offset = offset > 0 ? 0 : rectSize;
+      }
+
+      setInterval(() => {
+          const style = document.styleSheets[0].rules[0].style;
+          style.backgroundColor = style.backgroundColor == "black" ? "green" : "black";
+      }, changeIntervalMs);
+    </script>
+  </body>
+</html>
