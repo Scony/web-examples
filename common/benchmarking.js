@@ -13,6 +13,11 @@ Benchmarking.random = Math.random = function() {
     Benchmarking.randomSeed = randomSeed;
     return (randomSeed & 0xfffffff) / 0x10000000;
 }
+Benchmarking.getRandomIntInclusive = function(min, max) {
+    const minCeiled = Math.ceil(min);
+    const maxFloored = Math.floor(max);
+    return Math.floor(Benchmarking.random() * (maxFloored - minCeiled + 1) + minCeiled);
+}
 
 Benchmarking.now = window.performance && window.performance.now
                  ? function () { return window.performance.now(); }

@@ -1,0 +1,73 @@
+<html>
+  <head>
+    <script src="../common/utils.js"></script>
+    <script id='myWorker' type='text/worker'>
+      self.onmessage = (message) => {
+          const number = message.data.number;
+          const windowLocationOrigin = message.data.windowLocationOrigin;
+          console.log(`Worker#${number} started`);
+          const port = message.data.port;
+          let portMessagesReceived = 0;
+          function reportPortMessagesReceived() {
+              console.log(`Worker#${number} finished, messages received:${portMessagesReceived}`);
+          }
+          function receiveOnPort(portMessage) {
+              portMessagesReceived++;
+              if (portMessage.data == 'report')
+                  reportPortMessagesReceived();
+          }
+          function registerReceiver() {
+              console.log(`Worker#${number} registered receiver`);
+              port.onmessage = receiveOnPort;
+          }
+          registerReceiver();
+          if (message.data.busyReceiver) {
+              setTimeout(() => reportPortMessagesReceived(), 4000);
+              console.log(`Worker#${number} busy`);
+              importScripts(windowLocationOrigin + '/common/worker-utils.js');
+              Utils.busyLoop(3000);
+          }
+      };
+    </script>
+  </head>
+  <body>
+    <script>
+      Utils.drawRandomCurves({ raf: true, curvesPerDraw: 1 });
+
+      const numberOfWorkers = 3;
+
+      const workerBlob = new Blob([document.getElementById('myWorker').textContent]);
+      const workers = [];
+      const messageChannels = [];
+
+      for (let i = 0; i < numberOfWorkers; i++) {
+          workers.push(new Worker(URL.createObjectURL(workerBlob)));
+          messageChannels.push(new MessageChannel());
+      };
+
+      for (let i = 0; i < numberOfWorkers; i++) {
+          workers[i].postMessage({
+              number: i,
+              busyReceiver: i == 0,
+              port: messageChannels[i].port2,
+              windowLocationOrigin: window.location.origin,
+          }, [ messageChannels[i].port2 ]);
+      }
+
+      let messagesLeft = 120;
+      setInterval(() => {
+          if (messagesLeft-- <= 0)
+              return;
+          if (messagesLeft == 0) {
+              for (let i = 0; i < numberOfWorkers; i++) {
+                  messageChannels[i].port1.postMessage('report');
+              }
+              return;
+          }
+          for (let i = 0; i < numberOfWorkers; i++) {
+              messageChannels[i].port1.postMessage('count');
+          }
+      }, 16);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,46 @@
+<html>
+  <head>
+    <script src="../common/utils.js"></script>
+    <script id='myWorker' type='text/worker'>
+      self.onmessage = (message) => {
+          console.log(`Worker started`);
+          const port = message.data.port;
+          let messagesLeft = 120;
+          setInterval(() => {
+              if (messagesLeft-- <= 0)
+                  return;
+              if (messagesLeft == 0) {
+                  port.postMessage('report');
+                  return;
+              }
+              port.postMessage('count');
+          }, 16);
+      };
+    </script>
+  </head>
+  <body>
+    <script>
+      Utils.drawRandomCurves({ raf: true, curvesPerDraw: 1 });
+
+      const workerBlob = new Blob([document.getElementById('myWorker').textContent]);
+      const worker = new Worker(URL.createObjectURL(workerBlob));
+      const messageChannel = new MessageChannel();
+      worker.postMessage({
+          port: messageChannel.port2,
+      }, [ messageChannel.port2 ]);
+      setTimeout(() => {
+          let portMessagesReceived = 0;
+          function reportPortMessagesReceived() {
+              console.log(`Main finished, messages received:${portMessagesReceived}`);
+          }
+          console.log(`Main registered receiver`);
+          messageChannel.port1.onmessage = (message) => {
+              portMessagesReceived++;
+              if (message.data == 'report')
+                  reportPortMessagesReceived();
+          }
+          setTimeout(reportPortMessagesReceived, 1000);
+      }, 3000);
+    </script>
+  </body>
+</html>
