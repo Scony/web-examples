@@ -4,7 +4,7 @@
     <script id='myWorker' type='text/worker'>
       self.onmessage = (message) => {
           const number = message.data.number;
-          const windowLocationOrigin = message.data.windowLocationOrigin;
+          const workerUtilsURL = message.data.workerUtilsURL;
           console.log(`Worker#${number} started`);
           const port = message.data.port;
           let portMessagesReceived = 0;
@@ -24,7 +24,7 @@
           if (message.data.busyReceiver) {
               setTimeout(() => reportPortMessagesReceived(), 4000);
               console.log(`Worker#${number} busy`);
-              importScripts(windowLocationOrigin + '/common/worker-utils.js');
+              importScripts(workerUtilsURL);
               Utils.busyLoop(3000);
           }
       };
@@ -50,7 +50,7 @@
               number: i,
               busyReceiver: i == 0,
               port: messageChannels[i].port2,
-              windowLocationOrigin: window.location.origin,
+              workerUtilsURL: window.location.origin + window.location.pathname.substring(0, window.location.pathname.lastIndexOf("/")+1) + '../common/worker-utils.js',
           }, [ messageChannels[i].port2 ]);
       }
 
