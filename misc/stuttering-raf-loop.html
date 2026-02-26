@@ -1,0 +1,46 @@
+<html>
+  <head>
+    <script src="../common/utils.js"></script>
+    <script src="../common/benchmarking.js"></script>
+  </head>
+  <body>
+    <script>
+      var canvas = document.createElement("canvas");
+      canvas.width = 200;
+      canvas.height = 200;
+      document.body.appendChild(canvas);
+
+      var ctx = canvas.getContext("2d");
+      ctx.fillStyle = "rgb(200 200 200)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      let frameId = 1;
+
+      function quickRendering() {
+          const offset = (frameId % 6) * 20;
+          ctx.fillStyle = "green";
+          ctx.fillRect(offset, offset, 15, 15);
+          Utils.busyLoop(1);
+      }
+
+      function slowRendering() {
+          for (let i = 1; i < 6; ++i) {
+              const offset = i * 20;
+              ctx.fillStyle = "red";
+              ctx.fillRect(offset, offset, 15, 15);
+          }
+          Utils.busyLoop(320 + Benchmarking.getRandomIntInclusive(0, 15));
+      }
+
+      function animationLoop() {
+          if (frameId % 6 != 0)
+              quickRendering();
+          else
+              slowRendering();
+          frameId++;
+          requestAnimationFrame(animationLoop);
+      }
+      setTimeout(() => animationLoop(), 5000);
+    </script>
+  </body>
+</html>
