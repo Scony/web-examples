@@ -5,6 +5,8 @@
   </head>
   <body>
     <script>
+      const slowRenderingBusyPeriodMs = parseInt((new URL(window.location.href)).searchParams.get("srbpms") || 320);
+
       var canvas = document.createElement("canvas");
       canvas.width = 200;
       canvas.height = 200;
@@ -29,7 +31,7 @@
               ctx.fillStyle = "red";
               ctx.fillRect(offset, offset, 15, 15);
           }
-          Utils.busyLoop(320 + Benchmarking.getRandomIntInclusive(0, 15));
+          Utils.busyLoop(slowRenderingBusyPeriodMs + Benchmarking.getRandomIntInclusive(0, 15));
       }
 
       function animationLoop() {
@@ -40,7 +42,7 @@
           frameId++;
           requestAnimationFrame(animationLoop);
       }
-      setTimeout(() => animationLoop(), 5000);
+      setTimeout(() => requestAnimationFrame(animationLoop), 5000);
     </script>
   </body>
 </html>
