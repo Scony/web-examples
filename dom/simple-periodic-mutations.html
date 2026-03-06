@@ -1,0 +1,23 @@
+<html>
+  <body>
+    <script>
+      const intervalMs = parseInt((new URL(window.location.href)).searchParams.get("ims") || 1000);
+      const removals = parseInt((new URL(window.location.href)).searchParams.get("r") || 1) > 0;
+
+      function createNewElement(elementName, lambda = (el) => {}) {
+          var newElement = document.createElement(elementName);
+          lambda(newElement);
+          return newElement;
+      }
+
+      setInterval(() => {
+          const bs = document.getElementsByTagName('b');
+          if (removals && bs.length == 10) {
+              while (bs.length)
+                  bs[0].remove();
+          }
+          document.body.appendChild(createNewElement('b', (el) => { el.innerText = '.'; }));
+      }, intervalMs);
+    </script>
+  </body>
+</html>
