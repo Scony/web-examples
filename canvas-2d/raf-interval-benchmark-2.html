@@ -1,0 +1,199 @@
+<html>
+  <head>
+    <script src="../common/utils.js"></script>
+    <script src="../common/benchmarking.js"></script>
+  </head>
+  <body>
+    <script>
+      const framesToDraw = Math.max(parseInt((new URL(window.location.href)).searchParams.get("fs") || 60), 2);
+      const busyPeriodMsLB = parseInt((new URL(window.location.href)).searchParams.get("lb") || 100);
+      const busyPeriodMsUB = Math.max(parseInt((new URL(window.location.href)).searchParams.get("ub") || 300), busyPeriodMsLB);
+      const busyPeriodProbability = parseFloat((new URL(window.location.href)).searchParams.get("p") || 0.0);
+      const reportRawValues = parseInt((new URL(window.location.href)).searchParams.get("rrv") || 0) > 0;
+      const reportRawValues2 = parseInt((new URL(window.location.href)).searchParams.get("rrv2") || 0) > 0;
+
+      const canvas = document.createElement("canvas");
+      canvas.width = window.innerWidth -  20;
+      canvas.height = window.innerHeight - 20;
+      canvas.style.border = "1px solid #000";
+      document.body.appendChild(canvas);
+
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "gray";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      function getRandomIntInclusive(min, max) {
+          const minCeiled = Math.ceil(min);
+          const maxFloored = Math.floor(max);
+          return Math.floor(Math.random() * (maxFloored - minCeiled + 1) + minCeiled);
+      }
+
+      function getRandomX() {
+          return getRandomIntInclusive(0, canvas.width);
+      }
+
+      function getRandomY() {
+          return getRandomIntInclusive(0, canvas.height);
+      }
+
+      function drawRandomCurve() {
+          ctx.strokeStyle = `rgb(${getRandomIntInclusive(0, 255)}, ${getRandomIntInclusive(0, 255)}, ${getRandomIntInclusive(0, 255)})`;
+          ctx.lineWidth = getRandomIntInclusive(1, 10);
+          ctx.beginPath();
+          ctx.moveTo(getRandomX(), getRandomY());
+          ctx.bezierCurveTo(
+              getRandomX(), getRandomY(),
+              getRandomX(), getRandomY(),
+              getRandomX(), getRandomY()
+          );
+          ctx.stroke();
+      }
+
+      function drawRandomCurves(curves) {
+          for (let i = 0; i < curves; i++)
+              drawRandomCurve();
+      }
+
+      function renderFrame() {
+          drawRandomCurves(1);
+          if (Benchmarking.random() < busyPeriodProbability)
+              Utils.busyLoop(getRandomIntInclusive(busyPeriodMsLB, busyPeriodMsUB));
+      }
+
+      function calculateStats(arr) {
+          if (!arr.length) return null;
+
+          const n = arr.length;
+
+          // min / max / sum
+          let min = Infinity;
+          let max = -Infinity;
+          let sum = 0;
+
+          for (const x of arr) {
+              if (x < min) min = x;
+              if (x > max) max = x;
+              sum += x;
+          }
+
+          const mean = sum / n;
+
+          // variance
+          let sq = 0;
+          for (const x of arr) {
+              sq += (x - mean) ** 2;
+          }
+
+          const variance = sq / n;
+          const stddev = Math.sqrt(variance);
+
+          // median
+          const sorted = [...arr].sort((a, b) => a - b);
+          const median = n % 2
+                ? sorted[n >> 1]
+                : (sorted[n/2 - 1] + sorted[n/2]) / 2;
+
+          // MAD (median absolute deviation)
+          const absDevs = sorted.map(x => Math.abs(x - median)).sort((a,b)=>a-b);
+          const mad = n % 2
+                ? absDevs[n >> 1]
+                : (absDevs[n/2 - 1] + absDevs[n/2]) / 2;
+
+          let above60fps = 0;
+          for (let el of arr) {
+              if (el < 1000/60)
+                  above60fps++;
+          }
+
+          let above30fps = 0;
+          for (let el of arr) {
+              if (el < 1000/30)
+                  above30fps++;
+          }
+
+          return { min, max, mean, stddev, median, mad, above30fps, above60fps };
+      }
+
+      function percentile(arr, p) {
+          if (arr.length === 0) return null;
+          if (p <= 0) return Math.min(...arr);
+          if (p >= 100) return Math.max(...arr);
+
+          const sorted = [...arr].sort((a, b) => a - b);
+          const index = (sorted.length - 1) * p / 100;
+
+          const lower = Math.floor(index);
+          const upper = Math.ceil(index);
+
+          if (lower === upper) return sorted[lower];
+
+          const weight = index - lower;
+          return sorted[lower] * (1 - weight) + sorted[upper] * weight;
+      }
+
+      function calculateIntervalsAndStats(rafEndTimestamps, distance) {
+          const rafIntervals = [];
+          for (let i = distance; i < rafEndTimestamps.length; ++i)
+              rafIntervals.push(rafEndTimestamps[i] - rafEndTimestamps[i - distance]);
+          const stats = calculateStats(rafIntervals);
+          const statsStr = `n: ${rafIntervals.length}, min: ${stats.min.toFixed(3)}, max: ${stats.max.toFixed(3)}, mean: ${stats.mean.toFixed(3)}, stddev: ${stats.stddev.toFixed(3)}, median: ${stats.median.toFixed(3)}, mad: ${stats.mad.toFixed(3)}, above30fps: ${stats.above30fps}, above60fps: ${stats.above60fps}`;
+
+          let percentilesInnerStr = "";
+          for (let p = 0; p <= 100; p += 10) {
+              if (percentilesInnerStr != "")
+                  percentilesInnerStr += ", ";
+              percentilesInnerStr += `${p}: ${percentile(rafIntervals, p).toFixed(3)}`
+          }
+          const percentilesStr = `percentiles:{${percentilesInnerStr}}`;
+
+          return { rafIntervals, statsStr, percentilesStr };
+      }
+
+      setTimeout(() => {
+          let framesLeft = framesToDraw + 1;
+          const rafEndTimestamps = [];
+          requestAnimationFrame(function render() {
+              if (--framesLeft > 0) {
+                  renderFrame();
+                  rafEndTimestamps.push(Benchmarking.now());
+                  requestAnimationFrame(render);
+              } else {
+                  rafEndTimestamps.push(Benchmarking.now());
+                  const configStr = `framesDrawn:${framesToDraw}, curvesPerFrame:1, busyPeriod:${busyPeriodProbability}(${busyPeriodMsLB},${busyPeriodMsUB})`;
+                  const intervalStats = calculateIntervalsAndStats(rafEndTimestamps, 1);
+                  const interval2Stats = calculateIntervalsAndStats(rafEndTimestamps, 2);
+                  const reportLines = [
+                      configStr,
+                      "",
+                      "interval stats:",
+                      intervalStats.statsStr,
+                      intervalStats.percentilesStr,
+                      "",
+                      "2-interval stats:",
+                      interval2Stats.statsStr,
+                      interval2Stats.percentilesStr,
+                      "",
+                      "",
+                  ];
+
+                  for (let line of reportLines)
+                      console.log(line);
+
+                  canvas.remove();
+                  const textarea = document.createElement('textarea');
+                  textarea.style.width = `${window.innerWidth -  20}px`;
+                  textarea.style.height = `${window.innerHeight - 20}px`;
+                  textarea.value = reportLines.join('\n');
+                  if (reportRawValues) {
+                      textarea.value += intervalStats.rafIntervals.join('\n');
+                  }
+                  if (reportRawValues2) {
+                      textarea.value += interval2Stats.rafIntervals.join('\n');
+                  }
+                  document.body.appendChild(textarea);
+              }
+          });
+      }, 1000);
+    </script>
+  </body>
+</html>
