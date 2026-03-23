@@ -1,0 +1,69 @@
+<html>
+  <head>
+    <script src="../common/utils.js"></script>
+    <script id='myWorker' type='text/worker'>
+      self.onmessage = (message) => {
+          const number = message.data.number;
+          const workerUtilsURL = message.data.workerUtilsURL;
+          console.log(`Worker#${number} started`);
+          let portMessagesReceived = 0;
+          function reportPortMessagesReceived() {
+              console.log(`Worker#${number} finished, messages received:${portMessagesReceived}`);
+          }
+          function receiveOnPort(portMessage) {
+              portMessagesReceived++;
+              if (portMessage.data == 'report')
+                  reportPortMessagesReceived();
+          }
+          function registerReceiver() {
+              console.log(`Worker#${number} registered receiver`);
+              self.onmessage = receiveOnPort;
+          }
+          registerReceiver();
+          if (message.data.busyReceiver) {
+              setTimeout(() => reportPortMessagesReceived(), 4000);
+              console.log(`Worker#${number} busy`);
+              importScripts(workerUtilsURL);
+              Utils.busyLoop(3000);
+          }
+      };
+    </script>
+  </head>
+  <body>
+    <script>
+      Utils.drawRandomCurves({ raf: true, curvesPerDraw: 1 });
+
+      const numberOfWorkers = 3;
+
+      const workerBlob = new Blob([document.getElementById('myWorker').textContent]);
+      const workers = [];
+
+      for (let i = 0; i < numberOfWorkers; i++) {
+          workers.push(new Worker(URL.createObjectURL(workerBlob)));
+      };
+
+      for (let i = 0; i < numberOfWorkers; i++) {
+          workers[i].postMessage({
+              number: i,
+              busyReceiver: i == 0,
+              workerUtilsURL: window.location.origin + window.location.pathname.substring(0, window.location.pathname.lastIndexOf("/")+1) + '../common/worker-utils.js',
+          });
+      }
+
+      let messagesLeft = 120;
+      setInterval(() => {
+          if (messagesLeft-- <= 0)
+              return;
+          if (messagesLeft == 0) {
+              for (let i = 0; i < numberOfWorkers; i++) {
+                  workers[i].postMessage('report');
+              }
+              return;
+          }
+          for (let i = 0; i < numberOfWorkers; i++) {
+              workers[i].postMessage('count');
+          }
+      }, 16);
+    </script>
+  </body>
+</html>
