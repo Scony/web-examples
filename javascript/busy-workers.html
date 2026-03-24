@@ -1,0 +1,34 @@
+<html>
+  <head>
+    <script src="../common/utils.js"></script>
+    <script id='myWorker' type='text/worker'>
+      self.onmessage = (message) => {
+          const number = message.data.number;
+          const workerUtilsURL = message.data.workerUtilsURL;
+          console.log(`Worker#${number} started`);
+          importScripts(workerUtilsURL);
+          Utils.busyLoop(3000);
+          console.log(`Worker#${number} finished`);
+      };
+    </script>
+  </head>
+  <body>
+    <script>
+      const numberOfWorkers = 3;
+
+      const workerBlob = new Blob([document.getElementById('myWorker').textContent]);
+      const workers = [];
+
+      for (let i = 0; i < numberOfWorkers; i++) {
+          workers.push(new Worker(URL.createObjectURL(workerBlob)));
+      };
+
+      for (let i = 0; i < numberOfWorkers; i++) {
+          workers[i].postMessage({
+              number: i,
+              workerUtilsURL: window.location.origin + window.location.pathname.substring(0, window.location.pathname.lastIndexOf("/")+1) + '../common/worker-utils.js',
+          });
+      }
+    </script>
+  </body>
+</html>
