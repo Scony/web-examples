@@ -1,0 +1,113 @@
+<html>
+  <head>
+    <script src="../common/utils.js"></script>
+    <script src="../common/benchmarking.js"></script>
+  </head>
+  <body>
+    <script>
+      const quickRenderingBusyPeriodMs = parseInt((new URL(window.location.href)).searchParams.get("qrbpms") || 1);
+      const slowRenderingBusyPeriodMs = parseInt((new URL(window.location.href)).searchParams.get("srbpms") || 320);
+      const tasks = parseInt((new URL(window.location.href)).searchParams.get("ts") || 25);
+      const taskBusyPeriodMs = parseInt((new URL(window.location.href)).searchParams.get("tbpms") || 3);
+      const taskMicrotasks = parseInt((new URL(window.location.href)).searchParams.get("tmts") || 1) > 0;
+      const taskMicrotaskBusyPeriodMs = parseInt((new URL(window.location.href)).searchParams.get("tmtbpms") || 1);
+      const rafMicrotasks = parseInt((new URL(window.location.href)).searchParams.get("rmts") || 1) > 0;
+      const rafMicrotaskBusyPeriodMs = parseInt((new URL(window.location.href)).searchParams.get("rmtbpms") || 1);
+
+      const sequence = [];
+
+      function log(message) {
+          sequence.push(message);
+          console.log(sequence.join(","));
+      }
+
+      var canvas = document.createElement("canvas");
+      canvas.width = 200;
+      canvas.height = 200;
+      document.body.appendChild(canvas);
+
+      var ctx = canvas.getContext("2d");
+      ctx.fillStyle = "rgb(200 200 200)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      let frameId = 1;
+
+      let rafMicrotaskId = 1;
+      function rafMicrotask() {
+          log(`rmt#${rafMicrotaskId}`);
+          Utils.busyLoop(rafMicrotaskBusyPeriodMs);
+          rafMicrotaskId++;
+      }
+
+      function quickRendering() {
+          log(`qr#${frameId}`);
+          const offset = (frameId % 8) * 20;
+          ctx.fillStyle = "green";
+          ctx.fillRect(offset, offset, 15, 15);
+          Utils.busyLoop(quickRenderingBusyPeriodMs);
+          if (rafMicrotasks)
+              queueMicrotask(rafMicrotask);
+      }
+
+      function slowRendering() {
+          log(`sr#${frameId}`);
+          const offset = (frameId % 8) * 20;
+          ctx.fillStyle = "red";
+          ctx.fillRect(offset, offset, 15, 15);
+          Utils.busyLoop(slowRenderingBusyPeriodMs + Benchmarking.getRandomIntInclusive(0, 15));
+          if (rafMicrotasks)
+              queueMicrotask(rafMicrotask);
+      }
+
+      function animationLoop() {
+          switch (frameId) {
+          case 1:
+              quickRendering();
+              break;
+          case 2:
+              quickRendering();
+              break;
+          case 3:
+              slowRendering();
+              break;
+          case 4:
+              quickRendering();
+              break;
+          case 5:
+              quickRendering();
+              break;
+          case 6:
+              quickRendering();
+              break;
+          default:
+              return;
+          }
+          frameId++;
+          requestAnimationFrame(animationLoop);
+      }
+
+      let taskMicrotaskId = 1;
+      function taskMicrotask() {
+          log(`tmt#${taskMicrotaskId}`);
+          Utils.busyLoop(taskMicrotaskBusyPeriodMs);
+          taskMicrotaskId++;
+      }
+
+      let taskId = 1;
+      function task() {
+          log(`t#${taskId}`);
+          Utils.busyLoop(taskBusyPeriodMs);
+          taskId++;
+          if (taskMicrotasks)
+              queueMicrotask(taskMicrotask);
+      }
+
+      setTimeout(() => {
+          requestAnimationFrame(animationLoop);
+          window.onmessage = () => { task(); };
+          for (let i = 0; i < tasks; ++i)
+              window.postMessage({});
+      }, 5000);
+    </script>
+  </body>
+</html>
