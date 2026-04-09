@@ -1,0 +1,40 @@
+<html>
+  <head>
+    <script src="../common/utils.js"></script>
+  </head>
+  <body>
+    <script>
+      const iterations = parseInt((new URL(window.location.href)).searchParams.get("i") || 10000);
+      const complex = parseInt((new URL(window.location.href)).searchParams.get("c") || 0);
+
+      function messageHandler(_) {
+          if (++messagesReceived == 1) {
+              beginTime = Utils.now();
+          } else if (messagesReceived == messagesToReceive) {
+              const endTime = Utils.now();
+              const deltaMs = endTime - beginTime;
+              const messagesPerSecond = messagesReceived * 1000.0 / deltaMs;
+              console.log(`Main thread processed ${messagesReceived} messages in ${deltaMs} [ms] so ${messagesPerSecond} [messages/s]`);
+          }
+      }
+
+      setTimeout(() => {
+          let beginTime = Utils.now();
+          let dtf = null;
+          if (!complex) {
+              for (let i = 0; i < iterations; i++) {
+                  dtf = new Intl.DateTimeFormat();
+              }
+          } else {
+              for (let i = 0; i < iterations; i++) {
+                  dtf = new Intl.DateTimeFormat(i % 2 ? "en-US" : "en-GB");
+              }
+          }
+          let endTime = Utils.now();
+          const deltaMs = endTime - beginTime;
+          const iterationsPerSecond = iterations * 1000.0 / deltaMs;
+          console.log(`Main thread processed ${iterations} iterations in ${deltaMs} [ms] so ${iterationsPerSecond} [iterations/s]`);
+      }, 1000);
+    </script>
+  </body>
+</html>
