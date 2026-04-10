@@ -1,0 +1,106 @@
+<html>
+  <head>
+    <script src="../common/utils.js"></script>
+    <script id='myWorker' type='text/worker'>
+      self.onmessage = (message) => {
+          console.log(`Worker#${message.data.number} started`);
+          for (let i = 0; i < message.data.messagesPerWorker; i++) {
+              switch (message.data.messageComplexity) {
+              case 0:
+                  postMessage({});
+                  break;
+              case 1:
+                  postMessage({workerNumber: message.data.number, xxx: 5, yyy: 133.7, zzz: 12312312312});
+                  break;
+              default:
+                  postMessage({
+                      workerNumber: message.data.number,
+                      xxx: 5,
+                      yyy: 133.7,
+                      zzz: 12312312312,
+                      str1: "1dfdsrfcvq34gt".repeat(10),
+                      str2: "1-20lf.-p[45o".repeat(10),
+                      str3: "qwertyyuuuiio".repeat(10),
+                      str4: "=-p'p[;.p/'.l/,".repeat(10),
+                  });
+              }
+          }
+      };
+    </script>
+  </head>
+  <body>
+    <script>
+      const renderingTimeMs = parseInt((new URL(window.location.href)).searchParams.get("rtms") || 0);
+      const numberOfWorkers = Math.max(parseInt((new URL(window.location.href)).searchParams.get("ws") || 1), 1);
+      const messagesPerWorker = parseInt((new URL(window.location.href)).searchParams.get("mpw") || 10000);
+      const messageComplexity = parseInt((new URL(window.location.href)).searchParams.get("mc") || 0); // 0 (empty), 1 (simple), or 2 (complex)
+      const floatingPointOperationsPerMessage = parseInt((new URL(window.location.href)).searchParams.get("flopm") || 0);
+
+      const messagesToReceive = numberOfWorkers * messagesPerWorker;
+
+      let canvas = null;
+      let ctx = null;
+
+      if (renderingTimeMs > 0) {
+          canvas = document.createElement("canvas");
+          canvas.width = 200;
+          canvas.height = 200;
+          document.body.appendChild(canvas);
+
+          ctx = canvas.getContext("2d");
+          ctx.fillStyle = "rgb(200 200 200)";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+
+      let frameId = 0;
+      function quickRendering() {
+          const offset = (1 + frameId % 7) * 20;
+          ctx.fillStyle = frameId++ % 2 ? "green" : "red";
+          ctx.fillRect(offset, offset, 15, 15);
+          Utils.busyLoop(renderingTimeMs);
+      }
+      function animationLoop() {
+          quickRendering();
+          requestAnimationFrame(animationLoop);
+      }
+
+      const workerBlob = new Blob([document.getElementById('myWorker').textContent]);
+      const workers = [];
+      for (let i = 0; i < numberOfWorkers; i++) {
+          workers.push(new Worker(URL.createObjectURL(workerBlob)));
+      };
+
+      let messagesReceived = 0;
+      let beginTime = null;
+      function messageHandler(_) {
+          let foo = 123432.43;
+          for (let i = 0; i < floatingPointOperationsPerMessage; i++) {
+              foo *= i % 2 ? 0.5 : 2.0;
+          }
+          if (++messagesReceived == 1) {
+              beginTime = Utils.now();
+          } else if (messagesReceived == messagesToReceive) {
+              const endTime = Utils.now();
+              const deltaMs = endTime - beginTime;
+              const messagesPerSecond = messagesReceived * 1000.0 / deltaMs;
+              console.log(`Main thread processed ${messagesReceived} messages in ${deltaMs} [ms] so ${messagesPerSecond} [messages/s]`);
+          }
+      }
+
+      setTimeout(() => {
+          if (renderingTimeMs > 0) {
+              requestAnimationFrame(animationLoop);
+          }
+
+          for (let i = 0; i < numberOfWorkers; i++) {
+              workers[i].onmessage = messageHandler;
+              workers[i].postMessage({
+                  number: i,
+                  messagesPerWorker: messagesPerWorker,
+                  messageComplexity: messageComplexity,
+              });
+          };
+      }, 1000);
+    </script>
+  </body>
+</html>
