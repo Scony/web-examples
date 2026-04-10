@@ -59,9 +59,10 @@
           ctx.fillRect(offset, offset, 15, 15);
           Utils.busyLoop(renderingTimeMs);
       }
+      let rafId = null;
       function animationLoop() {
           quickRendering();
-          requestAnimationFrame(animationLoop);
+          rafId = requestAnimationFrame(animationLoop);
       }
 
       const workerBlob = new Blob([document.getElementById('myWorker').textContent]);
@@ -84,12 +85,14 @@
               const deltaMs = endTime - beginTime;
               const messagesPerSecond = messagesReceived * 1000.0 / deltaMs;
               console.log(`Main thread processed ${messagesReceived} messages in ${deltaMs} [ms] so ${messagesPerSecond} [messages/s]`);
+              if (rafId)
+                  cancelAnimationFrame(rafId)
           }
       }
 
       setTimeout(() => {
           if (renderingTimeMs > 0) {
-              requestAnimationFrame(animationLoop);
+              rafId = requestAnimationFrame(animationLoop);
           }
 
           for (let i = 0; i < numberOfWorkers; i++) {
