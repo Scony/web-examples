@@ -54,6 +54,8 @@ Utils.drawRandomCurves = function(parameters) {
     }
     function renderFrame() {
         drawRandomCurves(parameters.curvesPerDraw);
+        if (parameters.postRenderingCallback)
+            parameters.postRenderingCallback();
     }
 
     if (parameters.raf) {

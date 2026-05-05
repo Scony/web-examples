@@ -1,0 +1,72 @@
+<html>
+  <head>
+    <script src="../common/utils.js?"></script>
+    <script src="../common/benchmarking.js"></script>
+    <style>
+      p {
+          position: fixed;
+          font-size: 40px;
+          background-color: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <p id="p1">0</p>
+    <script>
+      // const intervalMs = parseInt((new URL(window.location.href)).searchParams.get("ims") || 16);
+      const raf = parseInt((new URL(window.location.href)).searchParams.get("raf") || 1) > 0;
+      const rafBusyLoopMs = parseInt((new URL(window.location.href)).searchParams.get("rafblms") || 17);
+      const macrotaskBusyLoopMs = parseInt((new URL(window.location.href)).searchParams.get("mtblms") || 17);
+      const log = parseInt((new URL(window.location.href)).searchParams.get("log") || 0) > 0;
+      const framesPerLog = parseInt((new URL(window.location.href)).searchParams.get("fpl") || 60);
+      const allocations = parseInt((new URL(window.location.href)).searchParams.get("as") || 100);
+      const allocationSize = parseInt((new URL(window.location.href)).searchParams.get("asz") || 1024*1024);
+      const framesPerAllocation = parseInt((new URL(window.location.href)).searchParams.get("fpa") || 60);
+
+      let macrotasksPending = 0;
+      let frame = 1;
+      let allocationsPending = allocations;
+      let buffers = [];
+
+      function workDuringMacrotask() {
+          if (macrotaskBusyLoopMs > 0)
+              Utils.busyLoop(macrotaskBusyLoopMs);
+          macrotasksPending--;
+      }
+
+      function workDuringRAFCallback() {
+          if (rafBusyLoopMs > 0)
+              Utils.busyLoop(rafBusyLoopMs);
+          window.postMessage({});
+          macrotasksPending++;
+          if (log && frame % framesPerLog == 0)
+              console.log(`macrotasksPending: ${macrotasksPending}`);
+          if (allocationsPending > 0) {
+              if (frame % framesPerAllocation == 0) {
+                  // Update counter.
+                  p1.firstChild.nodeValue = parseInt(p1.firstChild.nodeValue) + 1;
+
+                  // Allocate.
+                  let buffer = new ArrayBuffer(allocationSize);
+                  const view = new Uint8Array(buffer);
+                  for (let i = 0; i < view.length; i++) {
+                      view[i] = i == 0 ? Benchmarking.getRandomIntInclusive(0, 255) : (view[i - 1] + Benchmarking.getRandomIntInclusive(0, 255)) % 256;
+                  }
+                  buffers.push(buffer);
+                  allocationsPending--;
+              }
+          } else if (buffers.length > 0 && frame % framesPerAllocation == 0) {
+              buffers = [];
+              p1.firstChild.nodeValue = 0;
+              console.log("memory emptied");
+          }
+          frame++;
+      }
+
+      window.onmessage = () => {
+          workDuringMacrotask();
+      };
+      Utils.drawRandomCurves({ raf: raf, curvesPerDraw: 1, postRenderingCallback: workDuringRAFCallback });
+    </script>
+  </body>
+</html>
