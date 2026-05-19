@@ -1,0 +1,45 @@
+<html>
+  <head>
+    <style>
+      table {
+          border-spacing: 0;
+          animation-name: animate;
+          animation-duration: 5s;
+          animation-iteration-count: infinite;
+          animation-timing-function: linear;
+      }
+      td {
+          border: 1px solid;
+      }
+      div {
+          font-size: 20;
+      }
+      @keyframes animate {
+          0% {
+              border-spacing: 0;
+          }
+          50% {
+              border-spacing: 40;
+          }
+          100% {
+              border-spacing: 0;
+          }
+      }
+    </style>
+  </head>
+  <body>
+    <span>span
+      <p>p
+        <table>
+          <tr><td>td1<div>
+                <table>
+                  <tr><td>td1<div>div</div></td><td>td2</td></tr>
+                  <tr><td>td3</td><td>td4</td></tr>
+                </table>
+            </div></td><td>td2</td></tr>
+          <tr><td>td3</td><td>td4</td></tr>
+        </table>
+      </p>
+    </span>
+  </body>
+</html>

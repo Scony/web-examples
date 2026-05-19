@@ -1,0 +1,47 @@
+<html>
+  <head>
+    <style>
+      span {
+          animation-name: animate;
+          animation-duration: 5s;
+          animation-iteration-count: infinite;
+          animation-timing-function: linear;
+      }
+      @keyframes animate {
+          0% {
+              --animated-number: 0;
+          }
+          25% {
+              --animated-number: 10;
+          }
+          50% {
+              --animated-number: 20;
+          }
+          75% {
+              --animated-number: 10;
+          }
+          100% {
+              --animated-number: 0;
+          }
+      }
+    </style>
+  </head>
+  <body>
+    <span>span
+      <p>p
+        <template shadowrootmode="open">
+          <style>
+            @property --animated-number {
+                syntax: '<number>';
+                inherits: false;
+                initial-value: 0;
+            }
+            </style>
+          <b>b
+            <div>div</div>
+          </b>
+        </template>
+      </p>
+    </span>
+  </body>
+</html>

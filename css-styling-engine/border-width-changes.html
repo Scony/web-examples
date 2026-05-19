@@ -1,0 +1,23 @@
+<html>
+  <head>
+    <style>
+      span  {
+          border: 0px solid #000;
+      }
+    </style>
+  </head>
+  <body>
+    <span>span
+      <p>p
+        <div>div</div>
+      </p>
+    </span>
+    <script>
+      let currentBorderWidth = 0;
+      setInterval(() => {
+          currentBorderWidth = (currentBorderWidth + 1) % 5;
+          document.body.children[0].style.borderWidth = currentBorderWidth;
+      }, 1000);
+    </script>
+  </body>
+</html>

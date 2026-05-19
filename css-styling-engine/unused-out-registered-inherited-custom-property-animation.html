@@ -1,0 +1,45 @@
+<html>
+  <head>
+    <style>
+      @property --animated-number {
+          syntax: '<number>';
+          inherits: true;
+          initial-value: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <template shadowrootmode="open">
+      <style>
+        span {
+            animation-name: animate;
+            animation-duration: 5s;
+            animation-iteration-count: infinite;
+            animation-timing-function: linear;
+        }
+        @keyframes animate {
+            0% {
+                --animated-number: 0;
+            }
+            25% {
+                --animated-number: 10;
+            }
+            50% {
+                --animated-number: 20;
+            }
+            75% {
+                --animated-number: 10;
+            }
+            100% {
+                --animated-number: 0;
+            }
+        }
+      </style>
+      <span>span
+        <p>p
+          <div>div</div>
+        </p>
+      </span>
+    </template>
+  </body>
+</html>
