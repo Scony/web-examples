@@ -1,0 +1,69 @@
+<html>
+  <head>
+    <script src="../common/benchmarking.js"></script>
+    <style>
+      body {
+          margin: 0;
+      }
+
+      span {
+          display: inline-block;
+          width: 5px;
+          height: 5px;
+          background-color: green;
+      }
+
+      #root {
+          animation-name: animate;
+          animation-duration: 1s;
+          animation-iteration-count: infinite;
+          animation-timing-function: steps(2);
+      }
+
+      .animated {
+          background-color: var(--color);
+      }
+
+      @keyframes animate {
+          0% {
+              --color: green;
+          }
+          49% {
+              --color: green;
+          }
+          51% {
+              --color: red;
+          }
+          100% {
+              --color: red;
+          }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      const intermediaries = Math.max(parseInt((new URL(window.location.href)).searchParams.get("is") || 3), 1);
+      const rects = Math.max(parseInt((new URL(window.location.href)).searchParams.get("rs") || 10), 1);
+      const animations = Math.min(parseInt((new URL(window.location.href)).searchParams.get("as") || 5), rects);
+
+      Benchmarking.enableFPSLogging();
+
+      let root = document.getElementById("root");
+      let nextIntermediaryIsB = true;
+      for (let i = 0; i < intermediaries; i++) {
+          let node = document.createElement(nextIntermediaryIsB ? "b" : "div");
+          root.appendChild(node);
+          root = node;
+          nextIntermediaryIsB = !nextIntermediaryIsB;
+      }
+
+      for (let i = 0; i < rects; i++) {
+          let rect = document.createElement("span");
+          if (i < animations)
+              rect.className = "animated";
+          root.appendChild(rect);
+      }
+    </script>
+  </body>
+</html>
