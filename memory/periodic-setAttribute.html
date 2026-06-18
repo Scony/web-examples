@@ -1,0 +1,48 @@
+<html>
+  <head>
+    <style>
+      body {
+          font-size: 40px;
+      }
+    </style>
+  </head>
+  <body>
+    <p id="p1">0</p>
+    <script>
+      const intervalMs = parseInt((new URL(window.location.href)).searchParams.get("ims") || 1000);
+      const raf = parseInt((new URL(window.location.href)).searchParams.get("raf") || 0) > 0;
+      const bytesToAllocate = parseInt((new URL(window.location.href)).searchParams.get("bta") || 1024*1024);
+
+      function makeString(length) {
+          var result           = '';
+          var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+          var charactersLength = characters.length;
+          for ( var i = 0; i < length; i++ ) {
+              result += characters.charAt(Math.floor(Math.random() * charactersLength));
+          }
+          return result;
+      }
+
+      const p1 = document.getElementById("p1");
+      let i = 0;
+
+      function iterate() {
+          // Update counter.
+          p1.firstChild.nodeValue = parseInt(p1.firstChild.nodeValue) + 1;
+
+          // Allocate.
+          p1.setAttribute(`x${i}`, makeString(bytesToAllocate));
+          i++;
+      }
+
+      if (!raf)
+          setInterval(iterate, intervalMs);
+      else {
+          requestAnimationFrame(function loop() {
+              iterate();
+              requestAnimationFrame(loop);
+          });
+      }
+    </script>
+  </body>
+</html>
