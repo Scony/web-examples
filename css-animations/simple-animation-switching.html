@@ -1,0 +1,59 @@
+<html>
+  <head>
+    <style> 
+      div {
+          position: fixed;
+          left: 50%;
+          top: 50%;
+          width: 50px;
+          height: 50px;
+          background-color: black;
+      }
+      .horizontal-animation {
+          animation: horizontal-animation 1s linear 0s infinite;
+      }
+      .vertical-animation {
+          animation: vertical-animation 1s linear 0s infinite;
+      }
+      @keyframes horizontal-animation {
+          0% {
+              top: 50%;
+          }
+          50% {
+              top: 0%;
+          }
+          100% {
+              top: 50%;
+          }
+      }
+      @keyframes vertical-animation {
+          0% {
+              left: 50%;
+          }
+          50% {
+              left: 0%;
+          }
+          100% {
+              left: 50%;
+          }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="horizontal-animation"></div>
+    <script>
+      const callGetAnimations = parseInt((new URL(window.location.href)).searchParams.get("ga") || 0) > 0;
+      const intervalMs = parseInt((new URL(window.location.href)).searchParams.get("ims") || 1000);
+
+      let currentAnimationIsHorizontal = true;
+      const div = document.getElementsByTagName("div")[0];
+
+      setInterval(() => {
+          if (callGetAnimations)
+              div.getAnimations();
+          div.className = currentAnimationIsHorizontal ? "vertical-animation" : "horizontal-animation";
+          currentAnimationIsHorizontal = !currentAnimationIsHorizontal;
+      }, 1000);
+    </script>
+  </body>
+</html>
