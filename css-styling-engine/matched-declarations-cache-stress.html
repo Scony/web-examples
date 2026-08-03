@@ -44,6 +44,9 @@
           const host = document.createElement("div");
           host.dataset.shadowLevel = shadowDepth - i;
           const shadowRoot = host.attachShadow({ mode: "open" });
+          const style = document.createElement("style");
+          style.textContent = "div { border: 1px solid black; }";
+          shadowRoot.appendChild(style);
           shadowRoot.appendChild(content);
           content = host;
       }
