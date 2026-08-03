@@ -1,0 +1,57 @@
+<html>
+  <head>
+    <style>
+      @property --animated-number {
+          syntax: "<number>";
+          inherits: true;
+          initial-value: 0.0;
+      }
+      span {
+          animation-name: animate;
+          animation-duration: 5s;
+          animation-iteration-count: infinite;
+          animation-timing-function: linear;
+      }
+      @keyframes animate {
+          0% {
+              --animated-number: 0.0;
+          }
+          50% {
+              --animated-number: 20.0;
+          }
+          100% {
+              --animated-number: 0.0;
+          }
+      }
+    </style>
+  </head>
+  <body>
+    <span>span
+      <p>p
+        <div>div</div>
+      </p>
+    </span>
+    <script>
+      // Number of nested shadow DOMs the <p> ends up inside of, e.g. ?sd=10.
+      const shadowDepth = Math.max(parseInt((new URL(window.location.href)).searchParams.get("sd") || 1024), 0);
+
+      const span = document.querySelector("span");
+      const p = document.querySelector("p");
+      p.remove();
+
+      let content = p;
+      for (let i = 0; i < shadowDepth; i++) {
+          const host = document.createElement("div");
+          host.dataset.shadowLevel = shadowDepth - i;
+          const shadowRoot = host.attachShadow({ mode: "open" });
+          const style = document.createElement("style");
+          style.textContent = `div { border: ${i}px solid black; }`;
+          shadowRoot.appendChild(style);
+          shadowRoot.appendChild(content);
+          content = host;
+      }
+
+      span.appendChild(content);
+    </script>
+  </body>
+</html>
