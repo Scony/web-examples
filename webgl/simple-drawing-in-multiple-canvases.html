@@ -1,0 +1,64 @@
+<html>
+  <body>
+    <script>
+      const numberOfCanvases = parseInt((new URL(window.location.href)).searchParams.get("cs") || 3);
+      const canvasSize = parseInt((new URL(window.location.href)).searchParams.get("csz") || 100);
+      const rectSize = parseInt((new URL(window.location.href)).searchParams.get("rsz") || 10);
+      const preserveScissor = parseInt((new URL(window.location.href)).searchParams.get("ps") || 0) > 0;
+
+      const canvasContexts = [];
+      for (let i = 0; i < numberOfCanvases; ++i) {
+          var canvas = document.createElement("canvas");
+          canvas.width = canvasSize;
+          canvas.height = canvasSize;
+          canvas.style.border = '1px solid #000';
+          document.body.appendChild(canvas);
+          canvasContexts.push(canvas.getContext('webgl'));
+      }
+
+      const rectStates = canvasContexts.map(() => ({
+          x: Math.floor(Math.random() * (canvasSize - rectSize + 1)),
+          y: Math.floor(Math.random() * (canvasSize - rectSize + 1)),
+          dx: Math.random() < 0.5 ? -1 : 1,
+          dy: Math.random() < 0.5 ? -1 : 1,
+      }));
+
+      function render() {
+          for (let i = 0; i < canvasContexts.length; ++i) {
+              const gl = canvasContexts[i];
+              const state = rectStates[i];
+
+              gl.enable(gl.SCISSOR_TEST);
+              gl.scissor(state.x, state.y, rectSize, rectSize);
+              gl.clearColor(0, 0, 1, 1);
+              gl.clear(gl.COLOR_BUFFER_BIT);
+
+              if (!preserveScissor)
+                  gl.disable(gl.SCISSOR_TEST);
+
+              state.x += state.dx;
+              state.y += state.dy;
+
+              if (state.x <= 0) {
+                  state.x = 0;
+                  state.dx = 1;
+              } else if (state.x + rectSize >= canvasSize) {
+                  state.x = canvasSize - rectSize;
+                  state.dx = -1;
+              }
+
+              if (state.y <= 0) {
+                  state.y = 0;
+                  state.dy = 1;
+              } else if (state.y + rectSize >= canvasSize) {
+                  state.y = canvasSize - rectSize;
+                  state.dy = -1;
+              }
+          }
+          requestAnimationFrame(render);
+      }
+
+      requestAnimationFrame(render);
+    </script>
+  </body>
+</html>
