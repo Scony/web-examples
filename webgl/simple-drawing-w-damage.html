@@ -1,0 +1,51 @@
+<html>
+  <body>
+    <script>
+      const shapes = parseInt((new URL(window.location.href)).searchParams.get("ss") || 3);
+      const canvasWidth = parseInt((new URL(window.location.href)).searchParams.get("cw") || (window.innerWidth - 50));
+      const canvasHeight = parseInt((new URL(window.location.href)).searchParams.get("ch") || (window.innerHeight - 50));
+      const limitDamage = parseInt((new URL(window.location.href)).searchParams.get("ld") || 0) > 0;
+
+      const canvas = document.createElement("canvas");
+      canvas.width = canvasWidth;
+      canvas.height = canvasHeight;
+      canvas.style.border = '1px solid #000';
+      document.body.appendChild(canvas);
+
+      const initialShapePositions = [];
+      for (let i = 0; i < shapes; ++i) {
+          initialShapePositions.push([i * 40 + 10, i * 40 + 10]);
+      }
+
+      const gl = canvas.getContext('webgl');
+
+      let frameNumber = 0;
+      function render() {
+          gl.enable(gl.SCISSOR_TEST);
+          let damageRects = [];
+          for (const initialShapePosition of initialShapePositions) {
+              // Draw shape.
+              for (let x = 0; x < 3; ++x) {
+                  for (let y = 0; y < 3; ++y) {
+                      if (x == 1 || y == 1) {
+                          gl.scissor(initialShapePosition[0] + (frameNumber % 300) + x * 10, initialShapePosition[1] + y * 10, 10, 10);
+                          gl.clearColor(0, 0, 1, 1);
+                          gl.clear(gl.COLOR_BUFFER_BIT);
+                      }
+                  }
+              }
+              // Prepare damage.
+              if (typeof gl.damage === 'function')
+                  damageRects.push(...[initialShapePosition[0] + (frameNumber % 300), initialShapePosition[1], limitDamage ? 20 : 30, limitDamage ? 20 : 30]);
+          }
+          if (typeof gl.damage === 'function')
+              gl.damage(new Float32Array(damageRects));
+          gl.disable(gl.SCISSOR_TEST);
+          frameNumber++;
+          requestAnimationFrame(render);
+      }
+
+      requestAnimationFrame(render);
+    </script>
+  </body>
+</html>
