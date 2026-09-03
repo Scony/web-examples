@@ -1,0 +1,51 @@
+<html>
+  <head>
+    <script id='myWorker' type='text/worker'>
+      self.onmessage = (message) => {
+          const { width, height } = message.data;
+
+          const canvas = new OffscreenCanvas(width, height);
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = 'rgb(0, 255, 0)';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.fillStyle = 'rgb(0, 0, 255)';
+          ctx.fillRect(5, 5, 50, 50);
+
+          const drawFunction = (i) => {
+              ctx.fillStyle = 'rgb(255, 255, 255)';
+              ctx.fillRect(0, 0, canvas.width, canvas.height);
+              const extraSize = (i % 100) * 2;
+              ctx.fillStyle = 'rgb(0, 0, 255)';
+              ctx.fillRect(5 + extraSize, 5 + extraSize, 50 + extraSize, 50 + extraSize);
+
+              const bitmap = canvas.transferToImageBitmap();
+              self.postMessage({ bitmap }, [bitmap]);
+
+              requestAnimationFrame(() => { drawFunction(i + 1); });
+          }
+
+          requestAnimationFrame(() => { drawFunction(0); });
+      };
+    </script>
+  </head>
+  <body>
+    <script>
+      var canvas = document.createElement("canvas");
+      canvas.width = 1400;
+      canvas.height = 600;
+      canvas.style.border = '1px solid #000';
+      document.body.appendChild(canvas);
+
+      var ctx = canvas.getContext('bitmaprenderer');
+
+      var workerBlob = new Blob([document.getElementById('myWorker').textContent]);
+      var worker = new Worker(URL.createObjectURL(workerBlob));
+
+      worker.onmessage = (message) => {
+          ctx.transferFromImageBitmap(message.data.bitmap);
+      };
+
+      worker.postMessage({ width: canvas.width, height: canvas.height });
+    </script>
+  </body>
+</html>
