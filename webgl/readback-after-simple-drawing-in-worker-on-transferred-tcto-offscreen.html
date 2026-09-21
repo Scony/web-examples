@@ -1,0 +1,65 @@
+<html>
+  <head>
+    <script id='myWorker' type='text/worker'>
+      self.onmessage = (message) => {
+          const canvas = message.data.canvas;
+
+          const gl = canvas.getContext('webgl');
+          gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+          gl.enable(gl.SCISSOR_TEST);
+
+          const drawFunction = (i) => {
+              if (i >= 9)
+                  return;
+
+              gl.scissor(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+              gl.clearColor(0.9, 0.9, 0.9, 1.0);
+              gl.clear(gl.COLOR_BUFFER_BIT);
+
+              let j = 0;
+              for (let x = 0; x < 3; ++x) {
+                  for (let y = 0; y < 3; ++y) {
+                      if (j++ > i)
+                          continue;
+                      gl.scissor(50 + x*50 + (x >= 1 ? x * 10 : 0), 50 + y*50 + (y >= 1 ? y * 10 : 0), 50, 50);
+                      gl.clearColor(0.0, 0.0, 1.0, 1.0);
+                      gl.clear(gl.COLOR_BUFFER_BIT);
+                  }
+              }
+
+              requestAnimationFrame(() => { drawFunction(i + 1); });
+          }
+
+          requestAnimationFrame(() => { drawFunction(0); });
+      };
+    </script>
+  </head>
+  <body>
+    <script>
+      const delayMs = parseInt((new URL(window.location.href)).searchParams.get("dms") || 1000);
+      var canvas = document.createElement("canvas");
+      canvas.width = 600;
+      canvas.height = 600;
+      canvas.style.border = '1px solid #000';
+      document.body.appendChild(canvas);
+
+      var canvas2 = document.createElement("canvas");
+      canvas2.width = 700;
+      canvas2.height = 700;
+      canvas2.style.border = '1px solid #000';
+      document.body.appendChild(canvas2);
+      const ctx = canvas2.getContext("2d");
+
+      var offscreenCanvas = canvas.transferControlToOffscreen();
+      var workerBlob = new Blob([document.getElementById('myWorker').textContent]);
+      var worker = new Worker(URL.createObjectURL(workerBlob));
+      worker.postMessage({ canvas: offscreenCanvas }, [offscreenCanvas]);
+
+      setTimeout(() => {
+          ctx.fillStyle = "rgb(0, 255, 0)";
+          ctx.fillRect(0, 0, 700, 700);
+          ctx.drawImage(canvas, 0, 0);
+      }, delayMs);
+    </script>
+  </body>
+</html>
