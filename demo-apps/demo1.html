@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Complexity Demo</title>
+<style>
+  :root {
+    --bg: #0a0e0a;
+    --bg-alt: #0f1a10;
+    --panel: #10200f;
+    --panel-alt: #15270f;
+    --green: #39ff6a;
+    --green-dim: #1f9c3f;
+    --green-faint: #0f4a22;
+    --text: #d9ffe0;
+    --text-dim: #7fbf8f;
+    --border: #1f5c2f;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  }
+
+  /* ---------- Main section ---------- */
+
+  #main-section {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding: 24px;
+  }
+
+  #main-section:empty::before {
+    content: "(empty — Complexity 0 selected)";
+    color: var(--text-dim);
+    font-style: italic;
+  }
+
+  /* ---------- Footer ---------- */
+
+  footer {
+    flex: 0 0 auto;
+    display: flex;
+    width: 100%;
+    border-top: 2px solid var(--border);
+    background: var(--bg-alt);
+  }
+
+  footer button {
+    flex: 1 1 0;
+    padding: 44px 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    background: var(--panel);
+    color: var(--green-dim);
+    border: none;
+    border-right: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+
+  footer button:last-child {
+    border-right: none;
+  }
+
+  footer button:hover {
+    background: var(--panel-alt);
+    color: var(--green);
+  }
+
+  footer button.active {
+    background: var(--green);
+    color: #04140a;
+    box-shadow: inset 0 0 0 2px var(--green-dim);
+  }
+
+  /* ---------- Shared content building blocks ---------- */
+
+  h1, h2, h3, h4 {
+    color: var(--green);
+    margin: 0 0 8px 0;
+  }
+
+  p {
+    line-height: 1.5;
+    color: var(--text);
+  }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+  }
+
+  .tag {
+    display: inline-block;
+    padding: 2px 10px;
+    margin: 2px;
+    border-radius: 999px;
+    background: var(--green-faint);
+    color: var(--green);
+    font-size: 0.75rem;
+    border: 1px solid var(--green-dim);
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--green-faint);
+    color: var(--green);
+    font-weight: bold;
+    border: 1px solid var(--green-dim);
+    flex-shrink: 0;
+  }
+
+  /* Complexity 2 */
+  .c2-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .c2-row .card {
+    flex: 1 1 220px;
+  }
+
+  /* Complexity 3 */
+  .c3-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .c3-grid .card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .c3-grid .card-body {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .c3-grid .card-footer {
+    display: flex;
+    justify-content: space-between;
+    border-top: 1px solid var(--border);
+    padding-top: 6px;
+  }
+
+  /* Complexity 4 */
+  .c4-layout {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+  .c4-sidebar {
+    flex: 0 0 200px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+  }
+  .c4-sidebar .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    background: var(--panel-alt);
+    border: 1px solid var(--border);
+  }
+  .c4-content {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+  }
+  .c4-content .card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .c4-content .card-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .c4-content .tag-row {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  /* Complexity 5 */
+  .c5-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .c5-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 18px;
+  }
+  .c5-header .stats {
+    display: flex;
+    gap: 22px;
+  }
+  .c5-header .stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .c5-body {
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+  }
+  .c5-sidebar {
+    flex: 0 0 220px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .c5-sidebar .group {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .c5-sidebar .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    background: var(--panel-alt);
+  }
+  .c5-main {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 14px;
+  }
+  .c5-main .card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .c5-main .card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .c5-main .card-head .left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .c5-main .metrics {
+    display: flex;
+    justify-content: space-between;
+  }
+  .c5-main .metric {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+  }
+  .c5-main .tag-row {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  .c5-table-wrap {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    overflow-x: auto;
+  }
+  table.c5-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  table.c5-table th, table.c5-table td {
+    text-align: left;
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  table.c5-table th {
+    color: var(--green);
+  }
+</style>
+</head>
+<body>
+
+<section id="main-section"></section>
+
+<footer id="footer-section">
+  <button data-complexity="0">Complexity 0</button>
+  <button data-complexity="1">Complexity 1</button>
+  <button data-complexity="2">Complexity 2</button>
+  <button data-complexity="3">Complexity 3</button>
+  <button data-complexity="4">Complexity 4</button>
+  <button data-complexity="5">Complexity 5</button>
+</footer>
+
+<script>
+(function () {
+  const mainSection = document.getElementById('main-section');
+  const buttons = document.querySelectorAll('#footer-section button');
+
+  function buildComplexity0() {
+    return '';
+  }
+
+  function buildComplexity1() {
+    return `
+      <div class="c1">
+        <h2>Complexity 0&ndash;5 Rendering Demo</h2>
+        <p>
+          This demo lets you click the buttons in the footer to replace the content of this
+          main section via <code>element.innerHTML</code>, using plain static HTML that
+          ranges from completely empty to a deeply nested arrangement of flexboxes, grids,
+          cards and tables. It is meant as a simple tool for observing how style
+          recalculation, layout and paint cost scale as DOM complexity increases.
+        </p>
+      </div>
+    `;
+  }
+
+  function buildComplexity2() {
+    let html = '<h2>Complexity 2</h2><div class="c2-row">';
+    for (let i = 1; i <= 3; i++) {
+      html += `
+        <div class="card">
+          <h3>Card ${i}</h3>
+          <p>A simple flex row of three cards, each with a heading and a paragraph.</p>
+        </div>
+      `;
+    }
+    html += '</div>';
+    return html;
+  }
+
+  function buildComplexity3() {
+    let html = '<h2>Complexity 3</h2><div class="c3-grid">';
+    for (let i = 1; i <= 9; i++) {
+      html += `
+        <div class="card">
+          <h3>Item ${i}</h3>
+          <div class="card-body">
+            <span class="badge">${i}</span>
+            <p>A 3&times;3 grid of cards, each containing a nested flex row and footer.</p>
+          </div>
+          <div class="card-footer">
+            <span class="tag">tag-${i}</span>
+            <span class="tag">demo</span>
+          </div>
+        </div>
+      `;
+    }
+    html += '</div>';
+    return html;
+  }
+
+  function buildComplexity4() {
+    let sidebar = '<div class="c4-sidebar"><h3>Navigation</h3>';
+    for (let i = 1; i <= 8; i++) {
+      sidebar += `<div class="nav-item"><span class="badge">${i}</span><span>Section ${i}</span></div>`;
+    }
+    sidebar += '</div>';
+
+    let content = '<div class="c4-content">';
+    for (let i = 1; i <= 12; i++) {
+      content += `
+        <div class="card">
+          <div class="card-head">
+            <span class="badge">${i}</span>
+            <h3>Panel ${i}</h3>
+          </div>
+          <p>Nested flex header inside a grid cell, inside a flex layout alongside a sidebar.</p>
+          <div class="tag-row">
+            <span class="tag">alpha</span>
+            <span class="tag">beta</span>
+            <span class="tag">gamma</span>
+          </div>
+        </div>
+      `;
+    }
+    content += '</div>';
+
+    return `
+      <h2>Complexity 4</h2>
+      <div class="c4-layout">
+        ${sidebar}
+        ${content}
+      </div>
+    `;
+  }
+
+  function buildComplexity5() {
+    let statsHtml = '';
+    const statLabels = ['Nodes', 'Depth', 'Grids', 'Flex boxes', 'Tags'];
+    const statValues = ['480+', '7', '9', '60+', '150+'];
+    for (let i = 0; i < statLabels.length; i++) {
+      statsHtml += `
+        <div class="stat">
+          <strong>${statValues[i]}</strong>
+          <span>${statLabels[i]}</span>
+        </div>
+      `;
+    }
+
+    let sidebarGroups = '';
+    for (let g = 1; g <= 3; g++) {
+      let items = '';
+      for (let i = 1; i <= 5; i++) {
+        items += `<div class="nav-item"><span class="badge">${g}.${i}</span><span>Item ${g}.${i}</span></div>`;
+      }
+      sidebarGroups += `<div class="group"><h4>Group ${g}</h4>${items}</div>`;
+    }
+
+    let cards = '';
+    for (let i = 1; i <= 24; i++) {
+      let metrics = '';
+      for (let m = 1; m <= 3; m++) {
+        metrics += `
+          <div class="metric">
+            <strong>${(i * m) % 97}</strong>
+            <span>m${m}</span>
+          </div>
+        `;
+      }
+      cards += `
+        <div class="card">
+          <div class="card-head">
+            <div class="left">
+              <span class="badge">${i}</span>
+              <h4>Node ${i}</h4>
+            </div>
+            <span class="tag">live</span>
+          </div>
+          <div class="metrics">${metrics}</div>
+          <div class="tag-row">
+            <span class="tag">flex</span>
+            <span class="tag">grid</span>
+            <span class="tag">nested</span>
+          </div>
+        </div>
+      `;
+    }
+
+    let rows = '';
+    for (let i = 1; i <= 15; i++) {
+      rows += `
+        <tr>
+          <td>${i}</td>
+          <td>Entry ${i}</td>
+          <td>${(i % 2 === 0) ? 'active' : 'idle'}</td>
+          <td>${(i * 37) % 1000}</td>
+        </tr>
+      `;
+    }
+
+    return `
+      <h2>Complexity 5</h2>
+      <div class="c5-wrapper">
+        <div class="c5-header">
+          <h3>Dashboard Overview</h3>
+          <div class="stats">${statsHtml}</div>
+        </div>
+        <div class="c5-body">
+          <div class="c5-sidebar">${sidebarGroups}</div>
+          <div class="c5-main">${cards}</div>
+        </div>
+        <div class="c5-table-wrap">
+          <table class="c5-table">
+            <thead>
+              <tr><th>#</th><th>Name</th><th>Status</th><th>Value</th></tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }
+
+  // Fixed HTML strings built once, up front, at page start. Clicking a
+  // footer button only ever assigns one of these pre-built strings to
+  // innerHTML — no HTML is constructed at click time.
+  const CONTENTS = {
+    0: buildComplexity0(),
+    1: buildComplexity1(),
+    2: buildComplexity2(),
+    3: buildComplexity3(),
+    4: buildComplexity4(),
+    5: buildComplexity5()
+  };
+
+  function render(level) {
+    mainSection.innerHTML = CONTENTS[level];
+    buttons.forEach((btn) => {
+      btn.classList.toggle('active', btn.dataset.complexity === String(level));
+    });
+  }
+
+  buttons.forEach((btn) => {
+    btn.addEventListener('click', () => render(btn.dataset.complexity));
+  });
+
+  render(1);
+})();
+</script>
+
+</body>
+</html>
