@@ -1,0 +1,66 @@
+<html>
+  <head>
+    <style>
+      body {
+          margin: 0;
+      }
+      div {
+          position: fixed;
+          box-sizing: border-box
+          will-change: transform;
+          background-color: orange;
+          mask-image: linear-gradient(white, white);
+          border: 1px solid;
+      }
+      span {
+          will-change:transform;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      const rects = parseInt((new URL(window.location.href)).searchParams.get("rs") || 10);
+
+      const randInt = (min, max) => min + Math.floor(Math.random() * (max - min + 1));
+
+      function createRect() {
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        const width = randInt(1, Math.max(1, vw));
+        const height = randInt(1, Math.max(1, vh));
+        const left = randInt(0, Math.max(0, vw - width));
+        const top = randInt(0, Math.max(0, vh - height));
+        const div = document.createElement("div");
+        div.setAttribute("style", `left:${left}px;top:${top}px;width:${width}px;height:${height}px;`);
+        div.appendChild(document.createElement("span"));
+        return div;
+      }
+
+      const delayInFrames = parseInt((new URL(window.location.href)).searchParams.get("dfs") || 0);
+
+      let added = [];
+      let framesToSkip = 0;
+      function tick() {
+        if (framesToSkip > 0) {
+          framesToSkip--;
+          requestAnimationFrame(tick);
+          return;
+        }
+        framesToSkip = delayInFrames;
+        if (added.length) {
+          for (const div of added)
+            div.remove();
+          added = [];
+        } else {
+          for (let i = 0; i < rects; i++) {
+            const div = createRect();
+            document.body.appendChild(div);
+            added.push(div);
+          }
+        }
+        requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    </script>
+  </body>
+</html>
