@@ -1,0 +1,78 @@
+<html>
+  <head>
+    <script src="../common/benchmarking.js"></script>
+    <style>
+      body {
+          margin: 0px;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      const params = (new URL(window.location.href)).searchParams;
+      const offMs = parseInt(params.get("oms") || 1000);
+      const onFrames = parseInt(params.get("ofs") || 60);
+      const curves = parseInt(params.get("cvs") || 1);
+
+      var canvas = document.createElement("canvas");
+      canvas.width = Math.floor(window.innerWidth * 3 / 4);
+      canvas.height = Math.floor(window.innerHeight * 3 / 4);
+      document.body.appendChild(canvas);
+
+      var ctx = canvas.getContext("2d");
+      ctx.fillStyle = "gray";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const getRandomIntInclusive = Benchmarking.getRandomIntInclusive;
+      function getRandomX() {
+          return getRandomIntInclusive(0, canvas.width);
+      }
+      function getRandomY() {
+          return getRandomIntInclusive(0, canvas.height);
+      }
+      function drawRandomCurve() {
+          ctx.strokeStyle = `rgb(${getRandomIntInclusive(0, 255)}, ${getRandomIntInclusive(0, 255)}, ${getRandomIntInclusive(0, 255)})`;
+          ctx.lineWidth = getRandomIntInclusive(1, 10);
+          ctx.beginPath();
+          ctx.moveTo(getRandomX(), getRandomY());
+          ctx.bezierCurveTo(
+              getRandomX(), getRandomY(),
+              getRandomX(), getRandomY(),
+              getRandomX(), getRandomY()
+          );
+          ctx.stroke();
+      }
+      function drawRandomCurves(count) {
+          for (let i = 0; i < count; i++)
+              drawRandomCurve();
+      }
+
+      // Phases: "off" (no rendering, timer pending) and "on" (rAF rendering for onFrames frames).
+      var phase = "off";
+      var framesLeft = 0;
+
+      function enterOffPhase() {
+          phase = "off";
+          console.log("phase: off (" + offMs + "ms)");
+          setTimeout(enterOnPhase, offMs);
+      }
+
+      function enterOnPhase() {
+          phase = "on";
+          framesLeft = onFrames;
+          console.log("phase: on (" + onFrames + " frames)");
+          requestAnimationFrame(rafCallback);
+      }
+
+      function rafCallback() {
+          drawRandomCurves(curves);
+          if (--framesLeft > 0)
+              requestAnimationFrame(rafCallback);
+          else
+              enterOffPhase();
+      }
+
+      enterOffPhase();
+    </script>
+  </body>
+</html>
