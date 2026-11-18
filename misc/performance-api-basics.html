@@ -1,0 +1,32 @@
+<html>
+  <body>
+    It works!
+    <script>
+      performance.measure("CustomMeasureA");
+      console.log("CustomMeasureA");
+      setTimeout(() => {
+          performance.mark("CustomMarkX");
+          console.log("CustomMarkX");
+          setTimeout(() => {
+              performance.mark("CustomMarkY");
+              console.log("CustomMarkY");
+              performance.measure("CustomMeasureXY", "CustomMarkX", "CustomMarkY");
+              console.log("CustomMeasureXY");
+              performance.measure("CustomMeasureYX", "CustomMarkY", "CustomMarkX");
+              console.log("CustomMeasureYX");
+              setTimeout(() => {
+                  performance.measure("CustomMeasureB");
+                  console.log("CustomMeasureB");
+                  const entries = [
+                      ...performance.getEntriesByType("mark"),
+                      ...performance.getEntriesByType("measure"),
+                  ].sort((a, b) => a.startTime - b.startTime);
+                  for (const entry of entries) {
+                      console.log(JSON.stringify(entry.toJSON(), null, 2));
+                  }
+              }, 1000);
+          }, 1000);
+      }, 1000);
+    </script>
+  </body>
+</html>
