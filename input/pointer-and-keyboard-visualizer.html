@@ -1,0 +1,110 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Pointer &amp; keyboard input visualizer</title>
+<style>
+  html, body { margin: 0; height: 100%; font: 20px sans-serif; overflow: hidden; cursor: none; user-select: none; }
+  #box { position: absolute; top: 20px; left: 20px; width: 120px; height: 120px; background: crimson;
+         animation: move 2s linear infinite alternate; }
+  @keyframes move { to { transform: translateX(600px) rotate(360deg); background: royalblue; } }
+
+  #panel { position: absolute; top: 170px; left: 20px; right: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .card { border: 1px solid #ccc; border-radius: 8px; padding: 10px 14px; background: #fafafa; }
+  .card h3 { margin: 0 0 6px; font-size: 14px; color: #666; text-transform: uppercase; letter-spacing: .05em; }
+  .value { font: 22px monospace; }
+  .buttons span { display: inline-block; padding: 2px 10px; margin-right: 6px; border-radius: 4px; background: #ddd; font: 16px monospace; }
+  .buttons span.on { background: #2b8a3e; color: white; }
+  input { font-size: 22px; width: 100%; box-sizing: border-box; }
+  #pad { position: absolute; left: 20px; right: 20px; bottom: 20px; height: 150px; border: 2px dashed #999; border-radius: 8px;
+         display: flex; align-items: center; justify-content: center; color: #888; overflow: hidden; }
+  #trail { position: absolute; inset: 0; pointer-events: none; }
+
+  /* Software cursor drawn by the page so it's visible in the screencast. */
+  #cursor { position: fixed; left: 0; top: 0; width: 0; height: 0; pointer-events: none; z-index: 10; }
+  #cursor::before, #cursor::after { content: ""; position: absolute; background: black; box-shadow: 0 0 0 1px white; }
+  #cursor::before { left: -14px; top: -1px; width: 28px; height: 2px; }
+  #cursor::after { left: -1px; top: -14px; width: 2px; height: 28px; }
+  #cursor .ring { position: absolute; left: -10px; top: -10px; width: 20px; height: 20px; border-radius: 50%;
+                  border: 2px solid black; box-sizing: border-box; transition: transform .08s, background .08s; }
+  #cursor.down .ring { transform: scale(.6); background: rgba(43, 138, 62, .8); }
+  #cursor .label { position: absolute; left: 14px; top: 12px; font: 13px monospace; background: rgba(0,0,0,.7); color: white;
+                   padding: 1px 4px; border-radius: 3px; white-space: nowrap; }
+  .ripple { position: fixed; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; border: 3px solid #2b8a3e;
+            pointer-events: none; animation: ripple .6s ease-out forwards; z-index: 9; }
+  .ripple.right { border-color: #e67700; }
+  .ripple.middle { border-color: #1c7ed6; }
+  @keyframes ripple { to { transform: scale(8); opacity: 0; } }
+</style>
+
+<div id="box"></div>
+
+<div id="panel">
+  <div class="card"><h3>Pointer</h3><div class="value" id="pos">–</div></div>
+  <div class="card"><h3>Buttons</h3><div class="buttons"><span id="b0">left</span><span id="b1">middle</span><span id="b2">right</span></div></div>
+  <div class="card"><h3>Wheel</h3><div class="value" id="wheel">–</div></div>
+  <div class="card"><h3>Last key</h3><div class="value" id="key">–</div></div>
+  <div class="card"><h3>Clicks</h3><div class="value" id="clicks">0</div></div>
+  <div class="card"><h3>Text input</h3><input placeholder="click and type here"></div>
+</div>
+
+<div id="pad">drag here to draw<canvas id="trail"></canvas></div>
+
+<div id="cursor"><div class="ring"></div><div class="label" id="cursorLabel"></div></div>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const cursor = $('cursor');
+  let clicks = 0, wheelX = 0, wheelY = 0;
+
+  addEventListener('pointermove', e => {
+    cursor.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
+    $('pos').textContent = `${Math.round(e.clientX)}, ${Math.round(e.clientY)}`;
+    $('cursorLabel').textContent = `${Math.round(e.clientX)},${Math.round(e.clientY)}`;
+  });
+
+  function updateButtons(e) {
+    $('b0').classList.toggle('on', !!(e.buttons & 1));
+    $('b1').classList.toggle('on', !!(e.buttons & 4));
+    $('b2').classList.toggle('on', !!(e.buttons & 2));
+    cursor.classList.toggle('down', e.buttons !== 0);
+  }
+
+  addEventListener('pointerdown', e => {
+    updateButtons(e);
+    cursor.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
+    const r = document.createElement('div');
+    r.className = 'ripple' + (e.button === 2 ? ' right' : e.button === 1 ? ' middle' : '');
+    r.style.left = e.clientX + 'px';
+    r.style.top = e.clientY + 'px';
+    document.body.appendChild(r);
+    setTimeout(() => r.remove(), 700);
+  });
+  addEventListener('pointerup', updateButtons);
+  addEventListener('click', () => $('clicks').textContent = ++clicks);
+  addEventListener('dblclick', () => $('clicks').textContent = clicks + ' (double!)');
+  addEventListener('contextmenu', e => e.preventDefault());
+
+  addEventListener('wheel', e => {
+    wheelX += e.deltaX; wheelY += e.deltaY;
+    $('wheel').textContent = `Δ ${e.deltaX.toFixed(0)}, ${e.deltaY.toFixed(0)}  Σ ${wheelX.toFixed(0)}, ${wheelY.toFixed(0)}`;
+  }, { passive: true });
+
+  addEventListener('keydown', e => {
+    const mods = ['ctrlKey', 'shiftKey', 'altKey', 'metaKey'].filter(m => e[m]).map(m => m.replace('Key', ''));
+    $('key').textContent = [...mods, e.key === ' ' ? 'Space' : e.key].join('+');
+  });
+
+  // Drawing pad: visualises drags.
+  const canvas = $('trail'), pad = $('pad');
+  const ctx = canvas.getContext('2d');
+  function resize() { canvas.width = pad.clientWidth; canvas.height = pad.clientHeight; }
+  resize(); addEventListener('resize', resize);
+  let last = null;
+  pad.addEventListener('pointerdown', e => { last = [e.offsetX, e.offsetY]; ctx.clearRect(0, 0, canvas.width, canvas.height); });
+  pad.addEventListener('pointermove', e => {
+    if (!(e.buttons & 1) || !last) return;
+    ctx.strokeStyle = '#1c7ed6'; ctx.lineWidth = 4; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(...last); ctx.lineTo(e.offsetX, e.offsetY); ctx.stroke();
+    last = [e.offsetX, e.offsetY];
+  });
+  addEventListener('pointerup', () => last = null);
+</script>
